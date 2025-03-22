@@ -87,6 +87,26 @@ function shouldShowNewTag(dateString) {
 function renderAirdropCard(airdrop) {
     const isNew = shouldShowNewTag(airdrop.datePosted);
     
+    const investmentBadge = airdrop.investmentRequired ? 
+        `<div class="investment-badge paid">
+            <div class="badge-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="badge-text">
+                <span class="badge-label">Investment Required</span>
+                <span class="badge-value">${airdrop.investmentAmount}</span>
+            </div>
+        </div>` :
+        `<div class="investment-badge free">
+            <div class="badge-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <div class="badge-text">
+                <span class="badge-label">Free to Join</span>
+                <span class="badge-value">No Investment</span>
+            </div>
+        </div>`;
+
     return `
         <div class="airdrop-card" data-date="${airdrop.datePosted}">
             <div class="card-content">
@@ -100,11 +120,7 @@ function renderAirdropCard(airdrop) {
                             </div>
                             ` : ''}
                         </div>
-                        <div class="investment-badge ${airdrop.investmentRequired ? 'paid' : 'free'}">
-                            ${airdrop.investmentRequired ? 
-                                `<i class="fas fa-coins"></i> Required: ${airdrop.investmentAmount}` : 
-                                '<i class="fas fa-gift"></i> Free to Join'}
-                        </div>
+                        ${investmentBadge}
                         <p class="project-brief">${airdrop.brief}</p>
                         <span class="time-posted">${timeAgo(airdrop.datePosted)}</span>
                     </div>
