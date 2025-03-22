@@ -1,45 +1,34 @@
 const airdropsData = [
     {
         id: 1,
-        title: "MONAD TESTNET",
+        title: "Example 1",
         brief: "A new ecosystem for the future",
         datePosted: "2025-03-22 11:30",
         expectedReward: "$100-$1000",
-        expectedTGE: "Q2 2024",
+        expectedTGE: "Q2 2025",
         investmentRequired: false, // free airdrop
         investmentAmount: null,
         tasks: [
             "Follow & RT on Twitter",
             "Join Discord Community",
             "Complete Testnet Activities",
-            "Create a detailed thread about your experience with the protocol",
-            "Participate in community discussions for at least 2 weeks",
-            "Complete all quests in the testnet dashboard",
-            "aja tujhe chand par le cahlu",
-            "Follow & RT on Twitter",
-            "Join Discord Community",
-            "Complete Testnet Activities",
-            "Create a detailed thread about your experience with the protocol",
-            "Participate in community discussions for at least 2 weeks",
-            "Complete all quests in the testnet dashboard",
-            "aja tujhe chand par le cahlu"
         ],
         joinLink: "https://youtube.com"
     },
     {
         id: 2,
-        title: "Celestia",
-        brief: "Modular blockchain network",
+        title: "Example 2",
+        brief: "Example network ecosystem",
         datePosted: "2025-03-21 18:45",
         expectedReward: "$500-$2000",
-        expectedTGE: "Q3 2024",
-        investmentRequired: false, // paid airdrop
-        investmentAmount: null,
+        expectedTGE: "Q3 2025",
+        investmentRequired: true, // paid airdrop
+        investmentAmount: "2 SOL",
         tasks: [
             "Bridge minimum 1 ETH",
             "Participate in testnet",
             "Create 3 unique transactions",
-            "Maintain validator node for 2 weeks"
+            "Do task example 2"
         ],
         joinLink: "https://youtube.com"
     }
@@ -50,7 +39,7 @@ const airdropsData = [
 const updatesData = [
     {
         id: 1,
-        projectName: "MONAD TESTNET",
+        projectName: "Example 1",
         type: "important",
         timestamp: "2024-03-22 15:30",
         content: "🚨 Important: Testnet participation deadline extended to March 30th. Complete all tasks before the deadline to be eligible for rewards.",
