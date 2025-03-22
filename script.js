@@ -54,7 +54,7 @@ const updatesData = [
         type: "important",
         timestamp: "2024-03-22 15:30",
         content: "🚨 Important: Testnet participation deadline extended to March 30th. Complete all tasks before the deadline to be eligible for rewards.",
-        telegramLink: "https://t.me/your_group"
+        telegramLink: "https://t.me/NexDrop"
     }
 ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort by newest first
 
