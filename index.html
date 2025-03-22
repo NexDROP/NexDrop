@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Airdrops Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="splash-screen">
+        <div class="logo-container">
+            <img src="logo\N__3_-removebg-preview.png" class="nexdrop-logo" alt="NexDrop Logo">
+        </div>
+    </div>
+    <div class="telegram-popup" style="display: none;">
+        <div class="popup-content">
+            <div class="popup-header">
+                <i class="fab fa-telegram telegram-icon"></i>
+                <h3>Join Our Community!</h3>
+            </div>
+            <p>Stay updated with the latest airdrops and crypto opportunities</p>
+            <div class="popup-buttons">
+                <a href="https://t.me/your_group" target="_blank" class="join-telegram-btn">
+                    Join Telegram
+                </a>
+                <button class="maybe-later-btn">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <!-- Main content sections -->
+        <section id="airdrops-section" class="content-section active">
+            <div class="header">
+                <h1>Airdrops</h1>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search airdrops by name or description...">
+                    <button class="clear-search" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="welcome-message">
+                <div class="welcome-content">
+                    <div class="wave-emoji">👋</div>
+                    <div class="welcome-text">
+                        <h2>Hello</h2>
+                        <p>Discover exclusive airdrops curated just for you</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="airdrops-grid">
+                <!-- Example of an airdrop card -->
+                <div class="airdrop-card" data-timestamp="2024-03-21T15:30:00Z">
+                    <div class="card-content">
+                        <!-- Title Section -->
+                        <div class="card-header">
+                            <div class="title-section">
+                                <h2>Jupiter Protocol</h2>
+                                <p class="project-brief">Next-gen DeFi liquidity aggregator</p>
+                            </div>
+                            <div class="new-badge">
+                                <span class="new-tag">NEW</span>
+                                <span class="time-left"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Reward Section -->
+                        <div class="reward-section">
+                            <div class="reward-box">
+                                <span class="label">Expected Reward</span>
+                                <span class="value">$100-$1000</span>
+                            </div>
+                            <div class="reward-box">
+                                <span class="label">Expected TGE</span>
+                                <span class="value">Q2 2024</span>
+                            </div>
+                        </div>
+
+                        <!-- Tasks Preview -->
+                        <div class="tasks-preview">
+                            <div class="tasks-header" onclick="toggleTasks(this)">
+                                <h3>Tasks</h3>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="tasks-content collapsed">
+                                <ul>
+                                    <li>✦ Follow & RT on Twitter</li>
+                                    <li>✦ Join Discord Community</li>
+                                    <li>✦ Complete Testnet Activities</li>
+                                    <li>✦ Create a detailed thread about your experience with the protocol</li>
+                                    <li>✦ Participate in community discussions for at least 2 weeks</li>
+                                    <li>✦ Complete all quests in the testnet dashboard</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Replace details button with join button -->
+                        <a href="https://youtube.com" target="_blank" class="join-btn">
+                            JOIN AIRDROP
+                        </a>
+                    </div>
+                </div>
+                <!-- More airdrop cards will be added dynamically -->
+            </div>
+
+            <!-- Modal for airdrop details -->
+            <div class="modal" id="airdropModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="header-content">
+                            <h2 class="modal-title">Jupiter Protocol</h2>
+                            <div class="modal-tags">
+                                <span class="category-tag">DeFi</span>
+                                <span class="task-tag">Social</span>
+                                <span class="task-tag">Testnet</span>
+                                <span class="task-tag">Telegram</span>
+                            </div>
+                        </div>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    
+                    <div class="modal-info">
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <span class="info-label">Expected Reward</span>
+                                <span class="info-value">$100-$1000</span>
+                            </div>
+                            <div class="info-card">
+                                <span class="info-label">Expected TGE</span>
+                                <span class="info-value">Q2 2024</span>
+                            </div>
+                        </div>
+
+                        <div class="project-description">
+                            <h3>About Project</h3>
+                            <p>Jupiter Protocol is a next-generation DeFi platform focusing on...</p>
+                        </div>
+
+                        <div class="tasks-list">
+                            <h3>Tasks to Complete</h3>
+                            <div class="tasks-grid">
+                                <div class="task-group">
+                                    <h4>Social Tasks</h4>
+                                    <ul>
+                                        <li>
+                                            <input type="checkbox" id="task1">
+                                            <label for="task1">Follow on Twitter</label>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" id="task2">
+                                            <label for="task2">Like & Retweet</label>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="task-group">
+                                    <h4>Testnet Tasks</h4>
+                                    <ul>
+                                        <li>
+                                            <input type="checkbox" id="task3">
+                                            <label for="task3">Bridge Assets</label>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" id="task4">
+                                            <label for="task4">Swap Tokens</label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="updates-section" class="content-section">
+            <div class="header">
+                <h1>Updates</h1>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="updatesSearchInput" placeholder="Search updates...">
+                    <button class="clear-search" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="updates-filter">
+                    <button class="filter-chip active" data-filter="all">All Updates</button>
+                    <button class="filter-chip" data-filter="new-task">New Tasks</button>
+                    <button class="filter-chip" data-filter="important">Important</button>
+                    <button class="filter-chip" data-filter="deadline">Deadlines</button>
+                </div>
+            </div>
+            <div class="updates-container">
+                <!-- Updates will be rendered here -->
+            </div>
+            <!-- Add no results message -->
+            <div class="no-results" id="updatesNoResults" style="display: none;">
+                <i class="fas fa-search"></i>
+                <p>No updates found matching your search</p>
+            </div>
+        </section>
+
+        <section id="manage-section" class="content-section">
+            <div class="coming-soon-container">
+                <div class="lock-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2>Coming Soon!</h2>
+                <p>We're working hard to bring you the best airdrop management experience.</p>
+                <div class="feature-preview">
+                    <span>Features coming:</span>
+                    <ul>
+                        <li>✦ Track your airdrop progress</li>
+                        <li>✦ Manage task completion</li>
+                        <li>✦ Get notifications</li>
+                        <li>✦ Organize your airdrops</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <div class="nav-item" data-section="updates">
+                <i class="fas fa-bell"></i>
+                <span>Updates</span>
+            </div>
+            <div class="nav-item active" data-section="airdrops">
+                <i class="fas fa-parachute-box"></i>
+                <span>Airdrops</span>
+            </div>
+            <div class="nav-item" data-section="manage">
+                <i class="fas fa-tasks"></i>
+                <span>Manage</span>
+            </div>
+        </nav>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
