@@ -17,10 +17,6 @@ const airdropsData = [
         joinLink: "https://youtube.com"
     },
 
-    ads.ad_show({
-  adBlockUuid: "a06d32bd-a56f-4a20-90fa-67bd7bfadf24"
-});
-
     {
         id: 2,
         title: "Example 2",
@@ -245,6 +241,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add active class to clicked nav item
             this.classList.add('active');
+
+                ads.ad_show({
+  adBlockUuid: "a06d32bd-a56f-4a20-90fa-67bd7bfadf24"
+});
 
             
             // Show corresponding section
