@@ -16,6 +16,11 @@ const airdropsData = [
         ],
         joinLink: "https://youtube.com"
     },
+
+    ads.ad_show({
+  adBlockUuid: "a06d32bd-a56f-4a20-90fa-67bd7bfadf24"
+});
+
     {
         id: 2,
         title: "Example 2",
