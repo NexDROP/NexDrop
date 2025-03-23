@@ -1,4 +1,3 @@
-const AdController = window.Adsgram.init({ blockId: "int-9189" });
 const airdropsData = [
     {
         id: 1,
