@@ -40,7 +40,6 @@ body {
     height: 70px;
     width: 90%;
     border-radius: 20px;
-    backdrop-filter: blur(10px) saturate(180%);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -91,73 +90,78 @@ body {
 
 /* Header Styles */
 .header {
-    padding: 20px;
     position: sticky;
     top: 0;
-    background-color: #1a1a1a;
-    z-index: 10;
+    padding: 16px 20px;
+    background: #1a1a1a;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 10;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .header h1 {
-    margin-bottom: 16px;
-    font-size: 28px;
-    background: linear-gradient(90deg, #fff, #ccc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 22px;
+    margin: 0;
+    white-space: nowrap;
+    color: #fff;
+    font-weight: 600;
+    min-width: fit-content;
 }
 
+/* Update search bar styles */
 .search-bar {
+    flex: 1;
     position: relative;
-    margin-top: 15px;
+    margin: 0;
+    max-width: 500px;
 }
 
 .search-bar input {
     width: 100%;
-    padding: 16px 45px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    padding: 12px 38px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
     color: white;
-    font-size: 16px;
+    font-size: 14px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-bar input:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(124, 255, 77, 0.3);
-    box-shadow: 0 0 0 4px rgba(124, 255, 77, 0.1);
-}
-
-.search-bar input::placeholder {
-    color: #808080;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(124, 255, 77, 0.2);
+    box-shadow: 0 0 0 1px rgba(124, 255, 77, 0.1);
 }
 
 .search-bar .fa-search {
     position: absolute;
-    left: 16px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: #808080;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .clear-search {
     position: absolute;
-    right: 16px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     color: #808080;
     cursor: pointer;
-    padding: 4px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .clear-search:hover {
@@ -609,16 +613,32 @@ body {
     }
 }
 
-/* Add these new styles */
+/* Update time posted styles */
 .time-posted {
-    display: block;
+    display: flex;
+    align-items: center;
     color: #808080;
     font-size: 12px;
-    margin-top: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.title-section {
-    flex: 1;
+.time-posted i {
+    font-size: 12px;
+    margin-right: 6px;
+    opacity: 0.7;
+}
+
+/* Update card content to ensure proper spacing */
+.card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure join button doesn't have margin-top since we moved time there */
+.join-btn {
+    margin-top: 0;
 }
 
 /* Add these styles for the coming soon section */
@@ -722,11 +742,18 @@ body {
 
 /* Add these styles for the Updates section */
 .updates-filter {
+    margin-top: 12px;
+    padding: 0;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
-    padding: 10px 0;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.updates-filter::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .filter-chip {
@@ -848,11 +875,11 @@ body {
 
 /* Replace the update-actions styles with this new button style */
 .more-details-btn {
-    display: inline-block;
+    display: inline-flex;
     width: 100%;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #229ED9;
+    border: none;
     border-radius: 12px;
     color: #fff;
     text-align: center;
@@ -861,11 +888,18 @@ body {
     font-weight: 500;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 16px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .more-details-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #1e8dc2;
     transform: translateY(-2px);
+}
+
+.more-details-btn i {
+    font-size: 16px;
 }
 
 /* Remove these old styles if they exist */
@@ -897,14 +931,58 @@ body {
 }
 
 .logo-container {
+    position: relative;
     transform: scale(0.8);
     animation: logoAnimation 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 .nexdrop-logo {
-    width: 120px; /* Adjust size as needed */
+    width: 120px;
     height: auto;
     filter: drop-shadow(0 0 20px rgba(124, 255, 77, 0.3));
+    position: relative;
+    z-index: 2;
+}
+
+/* Add loading ring animation */
+.logo-container::before,
+.logo-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.logo-container::before {
+    width: 140px;
+    height: 140px;
+    border: 2px solid rgba(124, 255, 77, 0.1);
+    animation: loadingRing 2s linear infinite;
+}
+
+.logo-container::after {
+    width: 160px;
+    height: 160px;
+    border: 2px solid rgba(124, 255, 77, 0.05);
+    animation: loadingRing 3s linear infinite reverse;
+}
+
+@keyframes loadingRing {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+        border-top-color: #7CFF4D;
+    }
+    50% {
+        border-top-color: #7CFF4D;
+        border-right-color: #7CFF4D;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+        border-top-color: #7CFF4D;
+    }
 }
 
 @keyframes logoAnimation {
@@ -1237,4 +1315,79 @@ html {
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .header-content {
+        flex-direction: row; /* Keep side by side even on mobile */
+        gap: 12px;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+    }
+    
+    .search-bar input {
+        padding: 10px 34px;
+        font-size: 13px;
+    }
+}
+
+/* Add these styles */
+.info-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.funding-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background: rgba(64, 153, 255, 0.05);
+    border: 1px solid rgba(64, 153, 255, 0.1);
+}
+
+.funding-badge .badge-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(64, 153, 255, 0.1);
+    color: #4099ff;
+}
+
+.funding-badge .badge-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.funding-badge .badge-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: #4099ff;
+}
+
+.funding-badge .badge-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.funding-badge:hover {
+    background: rgba(64, 153, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.funding-badge .badge-icon {
+    animation: badgePulse 2s infinite;
 } 
