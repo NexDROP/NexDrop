@@ -2,12 +2,13 @@ const airdropsData = [
     {
         id: 1,
         title: "Example 1",
-        brief: "A new ecosystem for the future",
-        datePosted: "2025-03-22 11:30",
+        brief: "A new ecosystem for the future, fo the future mannn!!!!!!! Let's goooooooooooooo",
+        datePosted: "2025-03-23 11:30",
         expectedReward: "$100-$1000",
         expectedTGE: "Q2 2025",
         investmentRequired: false, // free airdrop
         investmentAmount: null,
+        funding: "$10M",
         tasks: [
             "Follow & RT on Twitter",
             "Join Discord Community",
@@ -24,6 +25,7 @@ const airdropsData = [
         expectedTGE: "Q3 2025",
         investmentRequired: true, // paid airdrop
         investmentAmount: "2 SOL",
+        funding: "$5M",
         tasks: [
             "Bridge minimum 1 ETH",
             "Participate in testnet",
@@ -76,24 +78,28 @@ function shouldShowNewTag(dateString) {
 function renderAirdropCard(airdrop) {
     const isNew = shouldShowNewTag(airdrop.datePosted);
     
-    const investmentBadge = airdrop.investmentRequired ? 
-        `<div class="investment-badge paid">
-            <div class="badge-icon">
-                <i class="fas fa-coins"></i>
+    const investmentAndFundingInfo = `
+        <div class="info-badges">
+            <div class="investment-badge ${airdrop.investmentRequired ? 'paid' : 'free'}">
+                <div class="badge-icon">
+                    <i class="fas ${airdrop.investmentRequired ? 'fa-coins' : 'fa-gift'}"></i>
+                </div>
+                <div class="badge-text">
+                    <span class="badge-label">${airdrop.investmentRequired ? 'Investment Required' : 'Free to Join'}</span>
+                    <span class="badge-value">${airdrop.investmentRequired ? airdrop.investmentAmount : 'No Investment'}</span>
+                </div>
             </div>
-            <div class="badge-text">
-                <span class="badge-label">Investment Required</span>
-                <span class="badge-value">${airdrop.investmentAmount}</span>
+            ${airdrop.funding ? `
+            <div class="funding-badge">
+                <div class="badge-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="badge-text">
+                    <span class="badge-label">Total Funding</span>
+                    <span class="badge-value">${airdrop.funding}</span>
+                </div>
             </div>
-        </div>` :
-        `<div class="investment-badge free">
-            <div class="badge-icon">
-                <i class="fas fa-gift"></i>
-            </div>
-            <div class="badge-text">
-                <span class="badge-label">Free to Join</span>
-                <span class="badge-value">No Investment</span>
-            </div>
+            ` : ''}
         </div>`;
 
     return `
@@ -109,9 +115,8 @@ function renderAirdropCard(airdrop) {
                             </div>
                             ` : ''}
                         </div>
-                        ${investmentBadge}
+                        ${investmentAndFundingInfo}
                         <p class="project-brief">${airdrop.brief}</p>
-                        <span class="time-posted">${timeAgo(airdrop.datePosted)}</span>
                     </div>
                 </div>
                 
@@ -141,6 +146,11 @@ function renderAirdropCard(airdrop) {
                 <a href="${airdrop.joinLink}" target="_blank" class="join-btn">
                     JOIN AIRDROP
                 </a>
+
+                <span class="time-posted">
+                    <i class="far fa-clock"></i>
+                    Posted ${timeAgo(airdrop.datePosted)}
+                </span>
             </div>
         </div>
     `;
@@ -438,35 +448,18 @@ function toggleTasks(header) {
     }
 }
 
-// Example of how to add a new airdrop
-function addNewAirdrop(airdropData) {
-    const now = new Date();
-    const datePosted = now.getFullYear() + '-' + 
-                      String(now.getMonth() + 1).padStart(2, '0') + '-' +
-                      String(now.getDate()).padStart(2, '0') + ' ' +
-                      String(now.getHours()).padStart(2, '0') + ':' +
-                      String(now.getMinutes()).padStart(2, '0');
-
-    const newAirdrop = {
-        id: airdropsData.length + 1,
-        datePosted: datePosted,
-        ...airdropData
-    };
-
-    // Add to beginning of array instead of pushing to end
-    airdropsData.unshift(newAirdrop);
-    renderAirdrops();
-}
-
-// Example usage:
-// addNewAirdrop({
-//     title: "New Airdrop",
-//     brief: "Description here",
-//     expectedReward: "$100-$500",
-//     expectedTGE: "Q2 2024",
-//     tasks: ["Task 1", "Task 2"],
-//     joinLink: "https://youtube.com"
-// });
+// Example of adding a new airdrop with funding
+addNewAirdrop({
+    title: "New Protocol",
+    brief: "Description here",
+    expectedReward: "$100-$500",
+    expectedTGE: "Q2 2024",
+    investmentRequired: true,
+    investmentAmount: "2 ETH",
+    funding: "$5M",
+    tasks: ["Task 1", "Task 2"],
+    joinLink: "https://youtube.com"
+});
 
 function initializeUpdates() {
     const filterChips = document.querySelectorAll('.filter-chip');
@@ -512,7 +505,7 @@ function renderUpdate(update) {
                 ${taskPreview}
             </div>
             <a href="${update.telegramLink}" target="_blank" class="more-details-btn">
-                MORE DETAILS
+                <i class="fab fa-telegram"></i> VISIT CHAT GROUP
             </a>
         </div>
     `;
