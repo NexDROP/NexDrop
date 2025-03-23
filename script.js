@@ -264,13 +264,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add active class to clicked nav item
             this.classList.add('active');
-            
-            // Show corresponding section
-            const sectionId = `${this.dataset.section}-section`;
-            const targetSection = document.getElementById(sectionId);
-            targetSection.classList.add('active');
 
-                // Show Monetag interstitial ad
+                            // Show Monetag interstitial ad
     if (typeof show_9123101 === 'function') {
       show_9123101({ 
         type: 'inApp', 
@@ -283,6 +278,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } 
       });
     }
+            
+            // Show corresponding section
+            const sectionId = `${this.dataset.section}-section`;
+            const targetSection = document.getElementById(sectionId);
+            targetSection.classList.add('active');
+
+
 
             // Reset scroll position to top
             window.scrollTo({
