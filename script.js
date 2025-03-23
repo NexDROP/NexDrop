@@ -1,3 +1,11 @@
+          <script>
+            window.TelegramAdsController = new TelegramAdsController();
+            window.TelegramAdsController.initialize({
+              pubId: "954410",
+              appId: "1856",
+            });
+          </script> 
+              
 const airdropsData = [
     {
         id: 1,
