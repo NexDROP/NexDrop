@@ -20,11 +20,18 @@ body {
 .content-section {
     display: none;
     padding: 20px;
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 90px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .content-section.active {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Updated Bottom Navigation Bar */
@@ -214,6 +221,7 @@ body {
     display: grid;
     gap: 20px;
     grid-template-columns: 1fr;
+    will-change: transform; /* Optimize for animations */
 }
 
 /* Airdrop Card */
@@ -726,20 +734,6 @@ body {
     100% { transform: scale(1); }
 }
 
-/* Optional: Add this if you want to disable the tab when it's locked */
-.nav-item[data-section="manage"] {
-    opacity: 0.7;
-    position: relative;
-}
-
-.nav-item[data-section="manage"]::after {
-    content: '🔒';
-    font-size: 10px;
-    position: absolute;
-    top: 8px;
-    right: 8px;
-}
-
 /* Add these styles for the Updates section */
 .updates-filter {
     margin-top: 12px;
@@ -877,25 +871,28 @@ body {
 .more-details-btn {
     display: inline-flex;
     width: 100%;
-    padding: 12px;
-    background: #229ED9;
+    padding: 14px;
+    background: linear-gradient(45deg, #7CFF4D, #4CAF50);
     border: none;
     border-radius: 12px;
-    color: #fff;
+    color: #1a1a1a;
     text-align: center;
     text-decoration: none;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 16px;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .more-details-btn:hover {
-    background: #1e8dc2;
     transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 4px 15px rgba(124, 255, 77, 0.3);
 }
 
 .more-details-btn i {
@@ -1390,4 +1387,639 @@ html {
 
 .funding-badge .badge-icon {
     animation: badgePulse 2s infinite;
+}
+
+/* Update the fade effect styles */
+.airdrop-card.card-fade {
+    opacity: 0.4;
+    transition: opacity 0.4s ease;
+}
+
+.airdrop-card.card-fade.card-visible {
+    opacity: 1;
+}
+
+/* Manage Section Styles */
+.manage-header {
+    padding: 24px;
+    margin-bottom: 30px;
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(165deg, rgba(124, 255, 77, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(124, 255, 77, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card i {
+    font-size: 28px;
+    color: #7CFF4D;
+    background: rgba(124, 255, 77, 0.1);
+    padding: 20px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover i {
+    transform: scale(1.1);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-label {
+    font-size: 16px;
+    color: #808080;
+    font-weight: 500;
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.section-title h2 {
+    font-size: 24px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.view-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 12px;
+    display: flex;
+    gap: 4px;
+}
+
+.view-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.saved-airdrops {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.saved-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.saved-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 255, 77, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.saved-card .card-content {
+    flex: 1;
+}
+
+.saved-card h3 {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.saved-card .airdrop-info {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.saved-card .reward,
+.saved-card .tge {
+    font-size: 14px;
+    color: #808080;
+}
+
+.saved-card .actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.visit-btn {
+    background: #229ED9;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.visit-btn:hover {
+    background: #1e8dc2;
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+    transform: translateY(-2px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #808080;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: rgba(124, 255, 77, 0.2);
+}
+
+.empty-state h3 {
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+/* Update save button styles */
+.save-btn {
+    position: static; /* Remove absolute positioning */
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #808080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+    background: rgba(124, 255, 77, 0.1);
+    border-color: rgba(124, 255, 77, 0.2);
+    color: #7CFF4D;
+    transform: translateY(-2px);
+}
+
+.save-btn.saved {
+    background: rgba(124, 255, 77, 0.1);
+    border-color: rgba(124, 255, 77, 0.2);
+    color: #7CFF4D;
+}
+
+.save-btn.saved:hover {
+    background: rgba(255, 59, 48, 0.1);
+    border-color: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
+
+.save-btn i {
+    font-size: 18px;
+}
+
+/* Update saved airdrops container styles */
+.saved-airdrops-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.saved-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.saved-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 255, 77, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.saved-card .card-content {
+    flex: 1;
+}
+
+.saved-card h3 {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.saved-card .airdrop-info {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.saved-card .reward,
+.saved-card .tge {
+    font-size: 14px;
+    color: #808080;
+}
+
+.saved-card .actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.visit-btn {
+    background: #229ED9;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.visit-btn:hover {
+    background: #1e8dc2;
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+    transform: translateY(-2px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #808080;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: rgba(124, 255, 77, 0.2);
+}
+
+.empty-state h3 {
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(124, 255, 77, 0.9);
+    color: #1a1a1a;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Add styles for the save button and button group */
+.card-button-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.join-btn {
+    flex: 1;
+}
+
+.save-btn {
+    position: static; /* Remove absolute positioning */
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #808080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+    background: rgba(124, 255, 77, 0.1);
+    border-color: rgba(124, 255, 77, 0.2);
+    color: #7CFF4D;
+    transform: translateY(-2px);
+}
+
+.save-btn.saved {
+    background: rgba(124, 255, 77, 0.1);
+    border-color: rgba(124, 255, 77, 0.2);
+    color: #7CFF4D;
+}
+
+.save-btn.saved:hover {
+    background: rgba(255, 59, 48, 0.1);
+    border-color: rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+}
+
+.save-btn i {
+    font-size: 18px;
+}
+
+/* Update saved card styles for better mobile view */
+.saved-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.saved-card .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.saved-card h3 {
+    font-size: 18px;
+    color: #fff;
+    margin: 0;
+}
+
+.airdrop-info {
+    display: flex;
+    gap: 12px;
+}
+
+.airdrop-info span {
+    font-size: 14px;
+    color: #808080;
+}
+
+.progress-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar .progress {
+    height: 100%;
+    background: #7CFF4D;
+    transition: width 0.3s ease;
+}
+
+/* Update list view styles */
+.saved-airdrops-grid.list-view .saved-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.saved-airdrops-grid.list-view .card-content {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+}
+
+.saved-airdrops-grid.list-view .airdrop-info {
+    margin-left: auto;
+    margin-right: 16px;
+}
+
+/* Add styles for the visit button */
+.visit-btn {
+    background: #229ED9;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.visit-btn:hover {
+    background: #1e8dc2;
+    transform: translateY(-2px);
+}
+
+/* Update custom popup styles */
+.custom-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: #212121;
+    border-radius: 12px;
+    width: 85%;
+    max-width: 320px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.custom-popup.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.popup-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.popup-content {
+    padding: 20px;
+}
+
+.popup-title {
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.popup-message {
+    color: #808080;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.popup-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.popup-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+}
+
+.popup-btn.confirm {
+    color: #FF3B30;
+}
+
+.popup-btn.confirm:hover {
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.popup-btn.cancel {
+    color: #7CFF4D;
+}
+
+.popup-btn.cancel:hover {
+    background: rgba(124, 255, 77, 0.1);
 } 
