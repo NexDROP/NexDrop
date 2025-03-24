@@ -99,8 +99,22 @@ function renderAirdropCard(airdrop) {
             ` : ''}
         </div>`;
 
+    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const isSaved = savedAirdrops.some(saved => saved.id === airdrop.id);
+
+    const buttonGroup = `
+        <div class="card-button-group">
+            <a href="${airdrop.joinLink}" target="_blank" class="join-btn">
+                JOIN AIRDROP
+            </a>
+            <button class="save-btn ${isSaved ? 'saved' : ''}" data-id="${airdrop.id}" onclick="toggleSaveAirdrop(${JSON.stringify(airdrop).replace(/"/g, '&quot;')})">
+                <i class="fas ${isSaved ? 'fa-check' : 'fa-bookmark'}"></i>
+            </button>
+        </div>
+    `;
+
     return `
-        <div class="airdrop-card" data-date="${airdrop.datePosted}">
+        <div class="airdrop-card" data-date="${airdrop.datePosted}" data-id="${airdrop.id}">
             <div class="card-content">
                 <div class="card-header">
                     <div class="title-section">
@@ -140,9 +154,7 @@ function renderAirdropCard(airdrop) {
                     </div>
                 </div>
 
-                <a href="${airdrop.joinLink}" target="_blank" class="join-btn">
-                    JOIN AIRDROP
-                </a>
+                ${buttonGroup}
 
                 <span class="time-posted">
                     <i class="far fa-clock"></i>
@@ -175,6 +187,36 @@ function renderAirdrops() {
             content.closest('.tasks-preview').querySelector('.tasks-header i').style.display = 'none';
         }
     });
+
+    // Set up the Intersection Observer
+    const observerOptions = {
+        root: null, // use viewport
+        rootMargin: '-30% 0px -60% 0px', // triggers when card is ~1/3 visible
+        threshold: 0 // trigger as soon as even one pixel is visible
+    };
+
+    const cardObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('card-visible');
+            } else {
+                entry.target.classList.remove('card-visible');
+            }
+        });
+    }, observerOptions);
+
+    // Function to observe cards
+    function observeCards() {
+        const cards = document.querySelectorAll('.airdrop-card');
+        cards.forEach(card => {
+            cardObserver.observe(card);
+            // Set initial state
+            card.classList.add('card-fade');
+        });
+    }
+
+    // Initial observation
+    observeCards();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -229,21 +271,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     navItems.forEach(item => {
         item.addEventListener('click', function() {
-            // Remove active class from all nav items and sections
+            // Get the current active section
+            const currentSection = document.querySelector('.content-section.active');
+            
+            // Remove active class from all nav items
             navItems.forEach(nav => nav.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
             
             // Add active class to clicked nav item
             this.classList.add('active');
  
-            // Show corresponding section
+            // Get target section
             const sectionId = `${this.dataset.section}-section`;
             const targetSection = document.getElementById(sectionId);
-            targetSection.classList.add('active');
-
-
+            
+            // If there's a current section, fade it out first
+            if (currentSection) {
+                currentSection.style.opacity = '0';
+                currentSection.style.transform = 'translateY(20px)';
+                
+                // Wait for fade out, then switch sections
+                setTimeout(() => {
+                    currentSection.classList.remove('active');
+                    targetSection.classList.add('active');
+                    
+                    // Force a reflow to ensure the animation runs
+                    targetSection.offsetHeight;
+                    
+                    // Fade in the new section
+                    targetSection.style.opacity = '1';
+                    targetSection.style.transform = 'translateY(0)';
+                }, 300);
+            } else {
+                // If no current section, just show the target
+                targetSection.classList.add('active');
+                targetSection.style.opacity = '1';
+                targetSection.style.transform = 'translateY(0)';
+            }
 
             // Reset scroll position to top
             window.scrollTo({
@@ -388,6 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initializeUpdates();
     initializeUpdatesSearch();
+    initializeManageSection();
 });
 
 // Update the updateNewTags function to use actual current time
@@ -604,4 +668,283 @@ function addNewUpdate(updateData) {
     const searchTerm = document.getElementById('updatesSearchInput').value;
     const currentFilter = document.querySelector('.updates-filter .filter-chip.active').dataset.filter;
     renderUpdates(currentFilter, searchTerm);
+}
+
+// Update the initializeManageSection function
+function initializeManageSection() {
+    const viewBtns = document.querySelectorAll('.view-btn');
+    const savedAirdropsContainer = document.querySelector('.saved-airdrops-container');
+    const searchInput = document.getElementById('manageSearchInput');
+    const clearSearchBtn = searchInput.parentElement.querySelector('.clear-search');
+    
+    // Load saved airdrops immediately
+    loadSavedAirdrops();
+    
+    // Set up view toggle
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            viewBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const view = btn.dataset.view;
+            savedAirdropsContainer.className = `saved-airdrops-container ${view}-view`;
+        });
+    });
+
+    // Set up search functionality
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        clearSearchBtn.style.display = searchTerm ? 'flex' : 'none';
+        filterSavedAirdrops(searchTerm);
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.style.display = 'none';
+        filterSavedAirdrops('');
+        searchInput.focus();
+    });
+}
+
+// Update loadSavedAirdrops function
+function loadSavedAirdrops() {
+    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const container = document.querySelector('.saved-airdrops-container');
+    
+    if (!container) return; // Guard clause if container doesn't exist
+    
+    if (savedAirdrops.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-bookmark"></i>
+                <h3>No saved airdrops</h3>
+                <p>Start saving airdrops to track them here!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = savedAirdrops
+        .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
+        .map(airdrop => renderSavedCard(airdrop))
+        .join('');
+}
+
+// Add filter function for saved airdrops
+function filterSavedAirdrops(searchTerm) {
+    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const container = document.querySelector('.saved-airdrops-container');
+    
+    const filteredAirdrops = savedAirdrops.filter(airdrop => 
+        airdrop.title.toLowerCase().includes(searchTerm) ||
+        airdrop.expectedReward.toLowerCase().includes(searchTerm) ||
+        airdrop.expectedTGE.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filteredAirdrops.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>No matching airdrops found</h3>
+                <p>Try adjusting your search terms</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredAirdrops.map(airdrop => renderSavedCard(airdrop)).join('');
+}
+
+// Update the renderSavedCard function
+function renderSavedCard(airdrop) {
+    return `
+        <div class="saved-card" data-id="${airdrop.id}">
+            <div class="card-content">
+                <h3>${airdrop.title}</h3>
+                <div class="airdrop-info">
+                    <span class="reward">${airdrop.expectedReward}</span>
+                    <span class="tge">${airdrop.expectedTGE}</span>
+                </div>
+            </div>
+            <div class="actions">
+                <a href="${airdrop.joinLink}" target="_blank" class="visit-btn">
+                    <i class="fas fa-external-link-alt"></i>
+                    Visit
+                </a>
+                <button class="delete-btn" onclick="deleteSavedAirdrop(${airdrop.id})">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Update statistics
+function updateStats() {
+    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const completedAirdrops = savedAirdrops.filter(airdrop => airdrop.progress === 100);
+    
+    document.getElementById('savedCount').textContent = savedAirdrops.length;
+    document.getElementById('completedCount').textContent = completedAirdrops.length;
+}
+
+// Update the showCustomPopup function
+function showCustomPopup(title, message, confirmText, cancelText, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.className = 'popup-overlay';
+    
+    const popup = document.createElement('div');
+    popup.className = 'custom-popup';
+    
+    popup.innerHTML = `
+        <div class="popup-content">
+            <h3 class="popup-title">${title}</h3>
+            <p class="popup-message">${message}</p>
+            <div class="popup-buttons">
+                <button class="popup-btn cancel">${cancelText}</button>
+                <button class="popup-btn confirm">${confirmText}</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+    
+    requestAnimationFrame(() => {
+        overlay.classList.add('show');
+        popup.classList.add('show');
+    });
+    
+    const confirmBtn = popup.querySelector('.popup-btn.confirm');
+    const cancelBtn = popup.querySelector('.popup-btn.cancel');
+    
+    function closePopup() {
+        overlay.classList.remove('show');
+        popup.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(popup);
+        }, 200);
+    }
+    
+    confirmBtn.addEventListener('click', () => {
+        onConfirm();
+        closePopup();
+    });
+    
+    cancelBtn.addEventListener('click', closePopup);
+    overlay.addEventListener('click', closePopup);
+}
+
+// Update the toggleSaveAirdrop function to use new popup style
+function toggleSaveAirdrop(airdropData) {
+    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const isSaved = savedAirdrops.some(saved => saved.id === airdropData.id);
+    
+    if (isSaved) {
+        showCustomPopup(
+            'Unsave Airdrop',
+            'Are you sure you want to remove this airdrop from your saved list?',
+            'Remove',
+            'Cancel',
+            () => {
+                const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== airdropData.id);
+                localStorage.setItem('savedAirdrops', JSON.stringify(updatedAirdrops));
+                
+                document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
+                    btn.classList.remove('saved');
+                    btn.querySelector('i').className = 'fas fa-bookmark';
+                });
+                
+                showToast('Airdrop removed from saved list');
+                updateManageSection();
+            }
+        );
+    } else {
+        // Add new saved airdrop
+        const newSavedAirdrop = {
+            ...airdropData,
+            savedAt: new Date().toISOString()
+        };
+        
+        savedAirdrops.push(newSavedAirdrop);
+        localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
+        
+        // Update all instances of this save button
+        document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
+            btn.classList.add('saved');
+            btn.querySelector('i').className = 'fas fa-check';
+        });
+        
+        showToast('Airdrop saved successfully!');
+        
+        // Real-time update of manage section
+        updateManageSection();
+    }
+}
+
+// Add this function to handle real-time updates of the manage section
+function updateManageSection() {
+    const manageSection = document.getElementById('manage-section');
+    if (manageSection) {
+        const container = manageSection.querySelector('.saved-airdrops-container');
+        const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+        
+        if (savedAirdrops.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-bookmark"></i>
+                    <h3>No saved airdrops</h3>
+                    <p>Start saving airdrops to track them here!</p>
+                </div>
+            `;
+        } else {
+            container.innerHTML = savedAirdrops
+                .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
+                .map(airdrop => renderSavedCard(airdrop))
+                .join('');
+        }
+    }
+}
+
+// Update the deleteSavedAirdrop function
+function deleteSavedAirdrop(id) {
+    showCustomPopup(
+        'Remove Saved Airdrop',
+        'Are you sure you want to remove this airdrop from your saved list?',
+        'Remove',
+        'Cancel',
+        () => {
+            const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+            const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== id);
+            localStorage.setItem('savedAirdrops', JSON.stringify(updatedAirdrops));
+            
+            document.querySelectorAll(`.save-btn[data-id="${id}"]`).forEach(btn => {
+                btn.classList.remove('saved');
+                btn.querySelector('i').className = 'fas fa-bookmark';
+            });
+            
+            showToast('Airdrop removed from saved list');
+            updateManageSection();
+        }
+    );
+}
+
+// Toast notification function
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 2000);
+    }, 100);
 } 
