@@ -1,39 +1,18 @@
 const airdropsData = [
     {
         id: 1,
-        title: "Example 1",
-        brief: "A new ecosystem for the future, fo the future mannn!!!!!!! Let's goooooooooooooo",
-        datePosted: "2025-03-23 11:30",
+        title: "Chaos Labs",
+        brief: "Chaos Labs builds technology that makes markets safer and more accessible. Our risk management systems, oracles, and AI models secure billions in value while democratizing access to world-class financial tools.",
+        datePosted: "2025-03-24 15:30",
         expectedReward: "$100-$1000",
-        expectedTGE: "Q2 2025",
+        expectedTGE: "WAITLIST",
         investmentRequired: false, // free airdrop
         investmentAmount: null,
-        funding: "$10M",
+        funding: "$55M",
         tasks: [
-            "Follow & RT on Twitter",
-            "Join Discord Community",
-            "Complete Testnet Activities",
+            "Sign up and join waitlist"
         ],
-        joinLink: "https://youtube.com"
-    },
-
-    {
-        id: 2,
-        title: "Example 2",
-        brief: "Example network ecosystem",
-        datePosted: "2025-03-21 18:45",
-        expectedReward: "$500-$2000",
-        expectedTGE: "Q3 2025",
-        investmentRequired: true, // paid airdrop
-        investmentAmount: "2 SOL",
-        funding: "$5M",
-        tasks: [
-            "Bridge minimum 1 ETH",
-            "Participate in testnet",
-            "Create 3 unique transactions",
-            "Do task example 2"
-        ],
-        joinLink: "https://youtube.com"
+        joinLink: "https://chaoslabs.xyz/ai/signup"
     }
 
 ].sort((a, b) => new Date(b.datePosted) - new Date(a.datePosted)); // Sort by newest first
