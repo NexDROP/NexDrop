@@ -18,7 +18,7 @@ const airdropsData = [
         id: 2,
         title: "Billions Network",
         brief: "Billions network is a global network that integrated humans and AI using zero knowledge proof for enhanced privacy and trust",
-        datePosted: "2025-03-24 14:00",
+        datePosted: "2025-03-24 16:00",
         expectedReward: "$100-$1000",
         expectedTGE: "Q3 2025",
         investmentRequired: false, // free airdrop
