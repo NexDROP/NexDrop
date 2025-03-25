@@ -71,16 +71,35 @@ function shouldShowNewTag(dateString) {
     return diffInHours <= 24;
 }
 
-// Helper function to get Telegram user ID
+// Update the getTelegramUserId function
 function getTelegramUserId() {
     try {
-        const tg = window.Telegram?.WebApp;
-        if (tg?.initDataUnsafe?.user?.id) {
-            return tg.initDataUnsafe.user.id;
+        // Check if we're in Telegram WebApp environment
+        if (window.Telegram && window.Telegram.WebApp) {
+            // Get the WebApp instance
+            const webapp = window.Telegram.WebApp;
+            
+            // Initialize WebApp if not already initialized
+            if (!webapp.initDataUnsafe || !webapp.initData) {
+                webapp.expand();
+                webapp.ready();
+            }
+
+            // Get user data
+            const user = webapp.initDataUnsafe?.user;
+            if (user && user.id) {
+                console.log('Telegram user found:', user.id);
+                return user.id;
+            } else {
+                console.warn('No user data in Telegram WebApp');
+                return null;
+            }
+        } else {
+            console.warn('Not in Telegram WebApp environment');
+            return null;
         }
-        return null;
     } catch (error) {
-        console.warn('Error getting Telegram user ID:', error);
+        console.error('Error getting Telegram user ID:', error);
         return null;
     }
 }
@@ -272,6 +291,12 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Telegram WebApp
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
+
     // Handle splash screen and telegram popup sequence
     const splashScreen = document.querySelector('.splash-screen');
     const telegramPopup = document.querySelector('.telegram-popup');
@@ -504,6 +529,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeUpdates();
     initializeUpdatesSearch();
     initializeManageSection();
+
+    // Add this function to help debug Telegram WebApp issues
+    function debugTelegramWebApp() {
+        console.log('Telegram object exists:', !!window.Telegram);
+        console.log('WebApp object exists:', !!window.Telegram?.WebApp);
+        if (window.Telegram?.WebApp) {
+            const webapp = window.Telegram.WebApp;
+            console.log('InitData:', webapp.initData);
+            console.log('InitDataUnsafe:', webapp.initDataUnsafe);
+            console.log('User:', webapp.initDataUnsafe?.user);
+        }
+    }
+
+    // Call this in your DOMContentLoaded event
+    debugTelegramWebApp();
 });
 
 // Update the updateNewTags function to use actual current time
@@ -758,27 +798,39 @@ function initializeManageSection() {
     });
 }
 
-// Update loadSavedAirdrops to check for user authentication
+// Update loadSavedAirdrops to handle Telegram environment better
 function loadSavedAirdrops() {
-    const userId = getTelegramUserId();
     const container = document.querySelector('.saved-airdrops-container');
-    
     if (!container) return;
-    
-    if (!userId) {
+
+    // Check if we're in Telegram
+    if (!window.Telegram?.WebApp) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-user-lock"></i>
-                <h3>Login Required</h3>
-                <p>Please open this app in Telegram to view your saved airdrops.</p>
+                <h3>Telegram Required</h3>
+                <p>Please open this app in Telegram to access your saved airdrops.</p>
             </div>
         `;
         return;
     }
-    
+
+    const userId = getTelegramUserId();
+    if (!userId) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Authentication Error</h3>
+                <p>Unable to access Telegram user data. Please try reopening the app.</p>
+            </div>
+        `;
+        return;
+    }
+
     const savedAirdrops = getSavedAirdrops();
+    const userAirdrops = savedAirdrops.filter(airdrop => airdrop.userId === userId);
     
-    if (savedAirdrops.length === 0) {
+    if (userAirdrops.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-bookmark"></i>
@@ -789,8 +841,7 @@ function loadSavedAirdrops() {
         return;
     }
     
-    container.innerHTML = savedAirdrops
-        .filter(airdrop => airdrop.userId === userId) // Only show user's saved airdrops
+    container.innerHTML = userAirdrops
         .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
         .map(airdrop => renderSavedCard(airdrop))
         .join('');
