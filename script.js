@@ -71,26 +71,44 @@ function shouldShowNewTag(dateString) {
     return diffInHours <= 24;
 }
 
-// Helper function to get storage key for current user
+// Update the storage functions to use Telegram's WebApp cloud storage
 function getUserStorageKey() {
-    // Get the Telegram WebApp user
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
     if (!user?.id) {
-        console.warn('User ID not found. Using fallback storage.');
-        return 'savedAirdrops_guest';
+        console.warn('No Telegram user found');
+        return null;
     }
     return `savedAirdrops_${user.id}`;
 }
 
-// Update storage functions to be user-specific
-function getSavedAirdrops() {
+// Update storage functions to use Telegram's cloud storage
+async function getSavedAirdrops() {
     const storageKey = getUserStorageKey();
-    return JSON.parse(localStorage.getItem(storageKey) || '[]');
+    if (!storageKey) return [];
+
+    try {
+        // Try to get data from Telegram cloud storage
+        const cloudData = await window.Telegram.WebApp.CloudStorage.getItem(storageKey);
+        return cloudData ? JSON.parse(cloudData) : [];
+    } catch (error) {
+        console.warn('Error getting saved airdrops:', error);
+        return [];
+    }
 }
 
-function setSavedAirdrops(airdrops) {
+async function setSavedAirdrops(airdrops) {
     const storageKey = getUserStorageKey();
-    localStorage.setItem(storageKey, JSON.stringify(airdrops));
+    if (!storageKey) return;
+
+    try {
+        // Save data to Telegram cloud storage
+        await window.Telegram.WebApp.CloudStorage.setItem(
+            storageKey,
+            JSON.stringify(airdrops)
+        );
+    } catch (error) {
+        console.warn('Error saving airdrops:', error);
+    }
 }
 
 // Add this function to render airdrop cards
@@ -121,7 +139,7 @@ function renderAirdropCard(airdrop) {
             ` : ''}
         </div>`;
 
-    const savedAirdrops = getSavedAirdrops();
+    const savedAirdrops = await getSavedAirdrops();
     const isSaved = savedAirdrops.some(saved => saved.id === airdrop.id);
 
     const buttonGroup = `
@@ -729,8 +747,8 @@ function initializeManageSection() {
 }
 
 // Update loadSavedAirdrops function
-function loadSavedAirdrops() {
-    const savedAirdrops = getSavedAirdrops();
+async function loadSavedAirdrops() {
+    const savedAirdrops = await getSavedAirdrops();
     const container = document.querySelector('.saved-airdrops-container');
     
     if (!container) return;
@@ -754,7 +772,7 @@ function loadSavedAirdrops() {
 
 // Add filter function for saved airdrops
 function filterSavedAirdrops(searchTerm) {
-    const savedAirdrops = getSavedAirdrops();
+    const savedAirdrops = await getSavedAirdrops();
     const container = document.querySelector('.saved-airdrops-container');
     
     const filteredAirdrops = savedAirdrops.filter(airdrop => 
@@ -803,7 +821,7 @@ function renderSavedCard(airdrop) {
 
 // Update statistics
 function updateStats() {
-    const savedAirdrops = getSavedAirdrops();
+    const savedAirdrops = await getSavedAirdrops();
     const completedAirdrops = savedAirdrops.filter(airdrop => airdrop.progress === 100);
     
     document.getElementById('savedCount').textContent = savedAirdrops.length;
@@ -859,8 +877,8 @@ function showCustomPopup(title, message, confirmText, cancelText, onConfirm) {
 }
 
 // Update the toggleSaveAirdrop function to use new popup style
-function toggleSaveAirdrop(airdropData) {
-    const savedAirdrops = getSavedAirdrops();
+async function toggleSaveAirdrop(airdropData) {
+    const savedAirdrops = await getSavedAirdrops();
     const isSaved = savedAirdrops.some(saved => saved.id === airdropData.id);
     
     if (isSaved) {
@@ -869,9 +887,9 @@ function toggleSaveAirdrop(airdropData) {
             'Are you sure you want to remove this airdrop from your saved list?',
             'Remove',
             'Cancel',
-            () => {
+            async () => {
                 const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== airdropData.id);
-                setSavedAirdrops(updatedAirdrops);
+                await setSavedAirdrops(updatedAirdrops);
                 
                 document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
                     btn.classList.remove('saved');
@@ -889,7 +907,7 @@ function toggleSaveAirdrop(airdropData) {
         };
         
         savedAirdrops.push(newSavedAirdrop);
-        setSavedAirdrops(savedAirdrops);
+        await setSavedAirdrops(savedAirdrops);
         
         document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
             btn.classList.add('saved');
@@ -902,11 +920,11 @@ function toggleSaveAirdrop(airdropData) {
 }
 
 // Add this function to handle real-time updates of the manage section
-function updateManageSection() {
+async function updateManageSection() {
     const manageSection = document.getElementById('manage-section');
     if (manageSection) {
         const container = manageSection.querySelector('.saved-airdrops-container');
-        const savedAirdrops = getSavedAirdrops();
+        const savedAirdrops = await getSavedAirdrops();
         
         if (savedAirdrops.length === 0) {
             container.innerHTML = `
@@ -926,16 +944,16 @@ function updateManageSection() {
 }
 
 // Update the deleteSavedAirdrop function
-function deleteSavedAirdrop(id) {
+async function deleteSavedAirdrop(id) {
     showCustomPopup(
         'Remove Saved Airdrop',
         'Are you sure you want to remove this airdrop from your saved list?',
         'Remove',
         'Cancel',
-        () => {
-            const savedAirdrops = getSavedAirdrops();
+        async () => {
+            const savedAirdrops = await getSavedAirdrops();
             const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== id);
-            setSavedAirdrops(updatedAirdrops);
+            await setSavedAirdrops(updatedAirdrops);
             
             document.querySelectorAll(`.save-btn[data-id="${id}"]`).forEach(btn => {
                 btn.classList.remove('saved');
