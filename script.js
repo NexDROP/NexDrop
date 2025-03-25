@@ -74,32 +74,31 @@ function shouldShowNewTag(dateString) {
 // Update the getTelegramUserId function
 function getTelegramUserId() {
     try {
-        // Check if we're in Telegram WebApp environment
-        if (window.Telegram && window.Telegram.WebApp) {
-            // Get the WebApp instance
-            const webapp = window.Telegram.WebApp;
-            
-            // Initialize WebApp if not already initialized
-            if (!webapp.initDataUnsafe || !webapp.initData) {
-                webapp.expand();
-                webapp.ready();
-            }
+        // Access Telegram WebApp directly
+        const webapp = window.Telegram.WebApp;
+        
+        // Log WebApp state for debugging
+        console.log('WebApp state:', {
+            isInitialized: !!webapp,
+            platform: webapp?.platform,
+            initDataUnsafe: webapp?.initDataUnsafe,
+            user: webapp?.initDataUnsafe?.user
+        });
 
-            // Get user data
+        // Ensure WebApp is ready
+        if (webapp) {
+            webapp.ready();
+            
+            // Get user from initDataUnsafe
             const user = webapp.initDataUnsafe?.user;
-            if (user && user.id) {
-                console.log('Telegram user found:', user.id);
-                return user.id;
-            } else {
-                console.warn('No user data in Telegram WebApp');
-                return null;
+            if (user?.id) {
+                return user.id.toString(); // Convert to string for consistency
             }
-        } else {
-            console.warn('Not in Telegram WebApp environment');
-            return null;
         }
+        
+        return null;
     } catch (error) {
-        console.error('Error getting Telegram user ID:', error);
+        console.error('Error in getTelegramUserId:', error);
         return null;
     }
 }
@@ -291,10 +290,21 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Telegram WebApp
+    // Initialize Telegram WebApp first
     if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
+        const webapp = window.Telegram.WebApp;
+        
+        // Expand the WebApp to full height
+        webapp.expand();
+        
+        // Set ready state
+        webapp.ready();
+        
+        console.log('Telegram WebApp initialized:', {
+            platform: webapp.platform,
+            version: webapp.version,
+            user: webapp.initDataUnsafe?.user
+        });
     }
 
     // Handle splash screen and telegram popup sequence
@@ -798,30 +808,24 @@ function initializeManageSection() {
     });
 }
 
-// Update loadSavedAirdrops to handle Telegram environment better
+// Update loadSavedAirdrops function with better error handling
 function loadSavedAirdrops() {
     const container = document.querySelector('.saved-airdrops-container');
     if (!container) return;
 
-    // Check if we're in Telegram
-    if (!window.Telegram?.WebApp) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-user-lock"></i>
-                <h3>Telegram Required</h3>
-                <p>Please open this app in Telegram to access your saved airdrops.</p>
-            </div>
-        `;
-        return;
-    }
-
+    // Debug log
+    console.log('Loading saved airdrops...');
+    console.log('Telegram WebApp available:', !!window.Telegram?.WebApp);
+    
     const userId = getTelegramUserId();
+    console.log('Retrieved user ID:', userId);
+
     if (!userId) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-exclamation-circle"></i>
                 <h3>Authentication Error</h3>
-                <p>Unable to access Telegram user data. Please try reopening the app.</p>
+                <p>Please make sure you're opening this app through Telegram.</p>
             </div>
         `;
         return;
