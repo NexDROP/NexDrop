@@ -81,16 +81,25 @@ function initializeAuth() {
 }
 
 function getCurrentUser() {
-    // Get user data from Telegram
+    // First try to get from localStorage
+    const storedUser = localStorage.getItem('userData');
+    if (storedUser) {
+        return JSON.parse(storedUser);
+    }
+    
+    // If not in localStorage, try to get from Telegram
     const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
     if (telegramUser) {
-        return {
+        const user = {
             id: telegramUser.id.toString(),
             username: telegramUser.username,
             firstName: telegramUser.first_name,
             lastName: telegramUser.last_name
         };
+        localStorage.setItem('userData', JSON.stringify(user));
+        return user;
     }
+    
     return null;
 }
 
@@ -258,6 +267,27 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Telegram WebApp
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        
+        // Get user data
+        const userData = window.Telegram.WebApp.initDataUnsafe?.user;
+        if (userData) {
+            const user = {
+                id: userData.id.toString(),
+                username: userData.username,
+                firstName: userData.first_name,
+                lastName: userData.last_name
+            };
+            
+            // Store user data
+            localStorage.setItem('userData', JSON.stringify(user));
+            updateUIForLoggedInUser(user);
+        }
+    }
+
     // Handle splash screen and telegram popup sequence
     const splashScreen = document.querySelector('.splash-screen');
     const telegramPopup = document.querySelector('.telegram-popup');
@@ -1004,16 +1034,19 @@ function handleSaveClick(airdropData) {
     const currentUser = getCurrentUser();
     
     if (!currentUser) {
-        showCustomPopup(
-            'Connect Telegram',
-            'Please connect your Telegram account to save airdrops',
-            'Connect',
-            'Cancel',
-            () => {
-                // Trigger Telegram login
-                window.Telegram?.WebApp?.expand();
-            }
-        );
+        if (isInTelegram()) {
+            handleTelegramConnect();
+        } else {
+            showCustomPopup(
+                'Open in Telegram',
+                'Please open this app in Telegram to save airdrops',
+                'Open Telegram',
+                'Cancel',
+                () => {
+                    window.open('https://t.me/NexDrop_bot', '_blank');
+                }
+            );
+        }
         return;
     }
     
@@ -1055,11 +1088,20 @@ function showLoginPrompt() {
             <div class="empty-state">
                 <i class="fab fa-telegram"></i>
                 <h3>Connect with Telegram</h3>
-                <p>Connect your Telegram account to save and manage airdrops</p>
-                <button class="connect-btn" onclick="handleTelegramConnect()">
-                    <i class="fab fa-telegram"></i>
-                    Connect Telegram
-                </button>
+                <p>${isInTelegram() ? 
+                    'Click connect to manage your saved airdrops' : 
+                    'Please open this app in Telegram to manage your saved airdrops'}</p>
+                ${isInTelegram() ? `
+                    <button class="connect-btn" onclick="handleTelegramConnect()">
+                        <i class="fab fa-telegram"></i>
+                        Connect
+                    </button>
+                ` : `
+                    <button class="connect-btn" onclick="window.open('https://t.me/NexDrop_bot', '_blank')">
+                        <i class="fab fa-telegram"></i>
+                        Open in Telegram
+                    </button>
+                `}
             </div>
         `;
     }
@@ -1067,32 +1109,36 @@ function showLoginPrompt() {
 
 // Add function to handle Telegram connection
 function handleTelegramConnect() {
-    if (window.Telegram?.WebApp) {
-        // If in Telegram WebApp, expand it
-        window.Telegram.WebApp.expand();
-        
-        // Check if user data is available
-        const userData = window.Telegram.WebApp.initDataUnsafe?.user;
-        if (userData) {
-            // User is already connected, initialize their data
-            const user = {
-                id: userData.id.toString(),
-                username: userData.username,
-                firstName: userData.first_name,
-                lastName: userData.last_name
-            };
-            
-            // Store user data
-            localStorage.setItem('userData', JSON.stringify(user));
-            
-            // Update UI
-            updateUIForLoggedInUser(user);
-            showToast('Successfully connected with Telegram');
-        } else {
-            showToast('Please open this app in Telegram');
-        }
-    } else {
-        // If not in Telegram, redirect to Telegram
-        window.open('https://t.me/your_bot_username', '_blank');
+    if (!window.Telegram?.WebApp) {
+        // If not in Telegram WebApp, show a toast and redirect
+        showToast('Please open this app in Telegram');
+        setTimeout(() => {
+            window.open('https://t.me/NexDrop_bot', '_blank');
+        }, 1000);
+        return;
     }
+
+    // If in Telegram WebApp
+    window.Telegram.WebApp.expand();
+    
+    const userData = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (userData) {
+        const user = {
+            id: userData.id.toString(),
+            username: userData.username,
+            firstName: userData.first_name,
+            lastName: userData.last_name
+        };
+        
+        localStorage.setItem('userData', JSON.stringify(user));
+        updateUIForLoggedInUser(user);
+        showToast('Successfully connected with Telegram');
+    } else {
+        showToast('Please open this app in Telegram');
+    }
+}
+
+// Add this function to check if we're in Telegram
+function isInTelegram() {
+    return !!window.Telegram?.WebApp;
 } 
