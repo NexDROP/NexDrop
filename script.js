@@ -80,18 +80,12 @@ function initializeAuth() {
     }
 }
 
+// Simplify getCurrentUser to just get Telegram WebApp user
 function getCurrentUser() {
-    // Get user directly from Telegram WebApp
     const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    if (telegramUser) {
-        return {
-            id: telegramUser.id.toString(),
-            username: telegramUser.username,
-            firstName: telegramUser.first_name,
-            lastName: telegramUser.last_name
-        };
-    }
-    return null;
+    return telegramUser ? {
+        id: telegramUser.id.toString()
+    } : null;
 }
 
 function getUserStorageKey(userId) {
@@ -732,31 +726,9 @@ function addNewUpdate(updateData) {
     renderUpdates(currentFilter, searchTerm);
 }
 
-// Update the initializeManageSection function
+// Simplify initializeManageSection
 function initializeManageSection() {
-    const currentUser = getCurrentUser();
-    const container = document.querySelector('.saved-airdrops-container');
-    
-    if (!currentUser) {
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-telegram"></i>
-                    <h3>Connect Telegram</h3>
-                    <p>Connect your Telegram account to save and manage airdrops</p>
-                    <button class="login-btn" onclick="window.Telegram?.WebApp?.expand()">
-                        Connect Telegram
-                    </button>
-                </div>
-            `;
-        }
-        return;
-    }
-
-    // Initialize for logged-in user
     loadSavedAirdrops();
-    
-    // Set up search and view toggle
     setupManageSectionControls();
 }
 
@@ -805,12 +777,10 @@ function setSavedAirdrops(userId, airdrops) {
     localStorage.setItem(storageKey, JSON.stringify(airdrops));
 }
 
-// Update the toggleSaveAirdrop function
+// Simplify toggleSaveAirdrop
 function toggleSaveAirdrop(airdropData) {
     const currentUser = getCurrentUser();
-    if (!currentUser) return;
-
-    const userId = currentUser.id;
+    const userId = currentUser?.id;
     const savedAirdrops = getSavedAirdrops(userId);
     const isSaved = savedAirdrops.some(saved => saved.id === airdropData.id);
     
@@ -852,12 +822,16 @@ function toggleSaveAirdrop(airdropData) {
     }
 }
 
+// Simplify handleSaveClick to remove authentication checks
+function handleSaveClick(airdropData) {
+    toggleSaveAirdrop(airdropData);
+}
+
 // Update the loadSavedAirdrops function
 function loadSavedAirdrops() {
     const currentUser = getCurrentUser();
-    if (!currentUser) return;
-
-    const savedAirdrops = getSavedAirdrops(currentUser.id);
+    const userId = currentUser?.id;
+    const savedAirdrops = getSavedAirdrops(userId);
     const container = document.querySelector('.saved-airdrops-container');
     
     if (!container) return;
@@ -1014,30 +988,6 @@ function showToast(message) {
             }, 300);
         }, 2000);
     }, 100);
-}
-
-// Update the handleSaveClick function
-function handleSaveClick(airdropData) {
-    const currentUser = getCurrentUser();
-    
-    if (!currentUser) {
-        if (isInTelegram()) {
-            handleTelegramConnect();
-        } else {
-            showCustomPopup(
-                'Open in Telegram',
-                'Please open this app in Telegram to save airdrops',
-                'Open Telegram',
-                'Cancel',
-                () => {
-                    window.open('https://t.me/NexDrop_bot', '_blank');
-                }
-            );
-        }
-        return;
-    }
-    
-    toggleSaveAirdrop(airdropData);
 }
 
 // Add this function to update all save buttons
