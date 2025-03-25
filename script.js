@@ -71,6 +71,28 @@ function shouldShowNewTag(dateString) {
     return diffInHours <= 24;
 }
 
+// Helper function to get storage key for current user
+function getUserStorageKey() {
+    // Get the Telegram WebApp user
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (!user?.id) {
+        console.warn('User ID not found. Using fallback storage.');
+        return 'savedAirdrops_guest';
+    }
+    return `savedAirdrops_${user.id}`;
+}
+
+// Update storage functions to be user-specific
+function getSavedAirdrops() {
+    const storageKey = getUserStorageKey();
+    return JSON.parse(localStorage.getItem(storageKey) || '[]');
+}
+
+function setSavedAirdrops(airdrops) {
+    const storageKey = getUserStorageKey();
+    localStorage.setItem(storageKey, JSON.stringify(airdrops));
+}
+
 // Add this function to render airdrop cards
 function renderAirdropCard(airdrop) {
     const isNew = shouldShowNewTag(airdrop.datePosted);
@@ -99,7 +121,7 @@ function renderAirdropCard(airdrop) {
             ` : ''}
         </div>`;
 
-    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const savedAirdrops = getSavedAirdrops();
     const isSaved = savedAirdrops.some(saved => saved.id === airdrop.id);
 
     const buttonGroup = `
@@ -708,10 +730,10 @@ function initializeManageSection() {
 
 // Update loadSavedAirdrops function
 function loadSavedAirdrops() {
-    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const savedAirdrops = getSavedAirdrops();
     const container = document.querySelector('.saved-airdrops-container');
     
-    if (!container) return; // Guard clause if container doesn't exist
+    if (!container) return;
     
     if (savedAirdrops.length === 0) {
         container.innerHTML = `
@@ -732,7 +754,7 @@ function loadSavedAirdrops() {
 
 // Add filter function for saved airdrops
 function filterSavedAirdrops(searchTerm) {
-    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const savedAirdrops = getSavedAirdrops();
     const container = document.querySelector('.saved-airdrops-container');
     
     const filteredAirdrops = savedAirdrops.filter(airdrop => 
@@ -781,7 +803,7 @@ function renderSavedCard(airdrop) {
 
 // Update statistics
 function updateStats() {
-    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const savedAirdrops = getSavedAirdrops();
     const completedAirdrops = savedAirdrops.filter(airdrop => airdrop.progress === 100);
     
     document.getElementById('savedCount').textContent = savedAirdrops.length;
@@ -838,7 +860,7 @@ function showCustomPopup(title, message, confirmText, cancelText, onConfirm) {
 
 // Update the toggleSaveAirdrop function to use new popup style
 function toggleSaveAirdrop(airdropData) {
-    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    const savedAirdrops = getSavedAirdrops();
     const isSaved = savedAirdrops.some(saved => saved.id === airdropData.id);
     
     if (isSaved) {
@@ -849,7 +871,7 @@ function toggleSaveAirdrop(airdropData) {
             'Cancel',
             () => {
                 const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== airdropData.id);
-                localStorage.setItem('savedAirdrops', JSON.stringify(updatedAirdrops));
+                setSavedAirdrops(updatedAirdrops);
                 
                 document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
                     btn.classList.remove('saved');
@@ -861,24 +883,20 @@ function toggleSaveAirdrop(airdropData) {
             }
         );
     } else {
-        // Add new saved airdrop
         const newSavedAirdrop = {
             ...airdropData,
             savedAt: new Date().toISOString()
         };
         
         savedAirdrops.push(newSavedAirdrop);
-        localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
+        setSavedAirdrops(savedAirdrops);
         
-        // Update all instances of this save button
         document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
             btn.classList.add('saved');
             btn.querySelector('i').className = 'fas fa-check';
         });
         
         showToast('Airdrop saved successfully!');
-        
-        // Real-time update of manage section
         updateManageSection();
     }
 }
@@ -888,7 +906,7 @@ function updateManageSection() {
     const manageSection = document.getElementById('manage-section');
     if (manageSection) {
         const container = manageSection.querySelector('.saved-airdrops-container');
-        const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+        const savedAirdrops = getSavedAirdrops();
         
         if (savedAirdrops.length === 0) {
             container.innerHTML = `
@@ -915,9 +933,9 @@ function deleteSavedAirdrop(id) {
         'Remove',
         'Cancel',
         () => {
-            const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+            const savedAirdrops = getSavedAirdrops();
             const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== id);
-            localStorage.setItem('savedAirdrops', JSON.stringify(updatedAirdrops));
+            setSavedAirdrops(updatedAirdrops);
             
             document.querySelectorAll(`.save-btn[data-id="${id}"]`).forEach(btn => {
                 btn.classList.remove('saved');
