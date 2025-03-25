@@ -1049,7 +1049,50 @@ function filterSavedAirdrops(searchTerm) {
 
 // Update the showLoginPrompt function
 function showLoginPrompt() {
-    // Implement the logic to show a login prompt
-    // This is a placeholder and should be replaced with actual implementation
-    console.log('Login prompt should be shown here');
+    const container = document.querySelector('.saved-airdrops-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fab fa-telegram"></i>
+                <h3>Connect with Telegram</h3>
+                <p>Connect your Telegram account to save and manage airdrops</p>
+                <button class="connect-btn" onclick="handleTelegramConnect()">
+                    <i class="fab fa-telegram"></i>
+                    Connect Telegram
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Add function to handle Telegram connection
+function handleTelegramConnect() {
+    if (window.Telegram?.WebApp) {
+        // If in Telegram WebApp, expand it
+        window.Telegram.WebApp.expand();
+        
+        // Check if user data is available
+        const userData = window.Telegram.WebApp.initDataUnsafe?.user;
+        if (userData) {
+            // User is already connected, initialize their data
+            const user = {
+                id: userData.id.toString(),
+                username: userData.username,
+                firstName: userData.first_name,
+                lastName: userData.last_name
+            };
+            
+            // Store user data
+            localStorage.setItem('userData', JSON.stringify(user));
+            
+            // Update UI
+            updateUIForLoggedInUser(user);
+            showToast('Successfully connected with Telegram');
+        } else {
+            showToast('Please open this app in Telegram');
+        }
+    } else {
+        // If not in Telegram, redirect to Telegram
+        window.open('https://t.me/your_bot_username', '_blank');
+    }
 } 
