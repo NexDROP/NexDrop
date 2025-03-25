@@ -74,31 +74,31 @@ function shouldShowNewTag(dateString) {
 // Update the getTelegramUserId function
 function getTelegramUserId() {
     try {
-        // Access Telegram WebApp directly
-        const webapp = window.Telegram.WebApp;
+        const webapp = window.Telegram?.WebApp;
         
-        // Log WebApp state for debugging
-        console.log('WebApp state:', {
-            isInitialized: !!webapp,
-            platform: webapp?.platform,
-            initDataUnsafe: webapp?.initDataUnsafe,
-            user: webapp?.initDataUnsafe?.user
-        });
-
-        // Ensure WebApp is ready
-        if (webapp) {
-            webapp.ready();
-            
-            // Get user from initDataUnsafe
-            const user = webapp.initDataUnsafe?.user;
-            if (user?.id) {
-                return user.id.toString(); // Convert to string for consistency
-            }
+        // Check if we're in Telegram
+        if (!webapp) {
+            console.warn('Not in Telegram WebApp environment');
+            return null;
         }
-        
+
+        // Get user data
+        const user = webapp.initDataUnsafe?.user;
+        if (user?.id) {
+            return user.id.toString();
+        }
+
+        // If no user data, try to re-initialize
+        webapp.ready();
+        const reinitUser = webapp.initDataUnsafe?.user;
+        if (reinitUser?.id) {
+            return reinitUser.id.toString();
+        }
+
+        console.warn('No user data available');
         return null;
     } catch (error) {
-        console.error('Error in getTelegramUserId:', error);
+        console.error('Error getting Telegram user ID:', error);
         return null;
     }
 }
@@ -290,20 +290,20 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Telegram WebApp first
+    // Initialize Telegram WebApp
     if (window.Telegram?.WebApp) {
         const webapp = window.Telegram.WebApp;
         
-        // Expand the WebApp to full height
+        // Ensure WebApp is ready and expanded
+        webapp.ready();
         webapp.expand();
         
-        // Set ready state
-        webapp.ready();
-        
+        // Log initialization for debugging
         console.log('Telegram WebApp initialized:', {
             platform: webapp.platform,
             version: webapp.version,
-            user: webapp.initDataUnsafe?.user
+            user: webapp.initDataUnsafe?.user,
+            initData: webapp.initData
         });
     }
 
@@ -808,27 +808,39 @@ function initializeManageSection() {
     });
 }
 
-// Update loadSavedAirdrops function with better error handling
+// Update loadSavedAirdrops function
 function loadSavedAirdrops() {
     const container = document.querySelector('.saved-airdrops-container');
     if (!container) return;
 
-    // Debug log
-    console.log('Loading saved airdrops...');
-    console.log('Telegram WebApp available:', !!window.Telegram?.WebApp);
-    
-    const userId = getTelegramUserId();
-    console.log('Retrieved user ID:', userId);
-
-    if (!userId) {
+    // Check if we're in Telegram
+    if (!window.Telegram?.WebApp) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-exclamation-circle"></i>
-                <h3>Authentication Error</h3>
-                <p>Please make sure you're opening this app through Telegram.</p>
+                <h3>Telegram Required</h3>
+                <p>Please open this app in Telegram to access your saved airdrops.</p>
             </div>
         `;
         return;
+    }
+
+    const userId = getTelegramUserId();
+    if (!userId) {
+        // Try to re-initialize WebApp
+        window.Telegram.WebApp.ready();
+        const retryUserId = getTelegramUserId();
+        
+        if (!retryUserId) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Loading Error</h3>
+                    <p>Unable to load user data. Please try reopening the app.</p>
+                </div>
+            `;
+            return;
+        }
     }
 
     const savedAirdrops = getSavedAirdrops();
