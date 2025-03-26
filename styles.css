@@ -26,6 +26,11 @@ body {
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 15px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .content-section.active {
@@ -97,18 +102,21 @@ body {
 
 /* Header Styles */
 .header {
+    padding: 15px 15px 10px;
+    background: #1a1a1a;
     position: sticky;
     top: 0;
-    padding: 16px 20px;
-    background: #1a1a1a;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 10;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .header-content {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .header h1 {
@@ -122,58 +130,42 @@ body {
 
 /* Update search bar styles */
 .search-bar {
-    flex: 1;
-    position: relative;
-    margin: 0;
-    max-width: 500px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 0 15px;
+    margin-top: 10px;
+    height: 45px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .search-bar input {
-    width: 100%;
-    padding: 12px 38px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    color: white;
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #ffffff;
     font-size: 14px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0 10px;
+    outline: none;
+    width: 100%;
 }
 
-.search-bar input:focus {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(124, 255, 77, 0.2);
-    box-shadow: 0 0 0 1px rgba(124, 255, 77, 0.1);
-}
-
-.search-bar .fa-search {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
+.search-bar i {
     color: #808080;
     font-size: 14px;
 }
 
-.clear-search {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+.search-bar .clear-search {
+    display: none;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     color: #808080;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.clear-search:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    padding: 5px;
 }
 
 /* Add this for no results state */
@@ -734,6 +726,20 @@ body {
     100% { transform: scale(1); }
 }
 
+/* Optional: Add this if you want to disable the tab when it's locked */
+.nav-item[data-section="manage"] {
+    opacity: 0.7;
+    position: relative;
+}
+
+.nav-item[data-section="manage"]::after {
+    content: '🔒';
+    font-size: 10px;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
 /* Add these styles for the Updates section */
 .updates-filter {
     margin-top: 12px;
@@ -871,28 +877,25 @@ body {
 .more-details-btn {
     display: inline-flex;
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(45deg, #7CFF4D, #4CAF50);
+    padding: 12px;
+    background: #229ED9;
     border: none;
     border-radius: 12px;
-    color: #1a1a1a;
+    color: #fff;
     text-align: center;
     text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 16px;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .more-details-btn:hover {
+    background: #1e8dc2;
     transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 4px 15px rgba(124, 255, 77, 0.3);
 }
 
 .more-details-btn i {
@@ -1399,410 +1402,35 @@ html {
     opacity: 1;
 }
 
-/* Manage Section Styles */
-.manage-header {
-    padding: 24px;
-    margin-bottom: 30px;
-    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.stat-card {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 20px;
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(165deg, rgba(124, 255, 77, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.stat-card:hover::before {
-    opacity: 1;
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(124, 255, 77, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.stat-card i {
-    font-size: 28px;
-    color: #7CFF4D;
-    background: rgba(124, 255, 77, 0.1);
-    padding: 20px;
-    border-radius: 16px;
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover i {
-    transform: scale(1.1);
-}
-
-.stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    position: relative;
-    z-index: 1;
-}
-
-.stat-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.stat-label {
-    font-size: 16px;
-    color: #808080;
-    font-weight: 500;
-}
-
-.section-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.section-title h2 {
-    font-size: 24px;
-    color: #fff;
-    font-weight: 600;
-}
-
-.view-toggle {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 4px;
-    border-radius: 12px;
-    display: flex;
-    gap: 4px;
-}
-
-.view-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-.saved-airdrops {
-    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
-    border-radius: 24px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.saved-card {
-    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.saved-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(124, 255, 77, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.saved-card .card-content {
-    flex: 1;
-}
-
-.saved-card h3 {
-    font-size: 18px;
-    color: #fff;
-    margin-bottom: 8px;
-}
-
-.saved-card .airdrop-info {
+/* Add styles for save button */
+.card-actions {
     display: flex;
     gap: 12px;
-    margin-bottom: 4px;
-}
-
-.saved-card .reward,
-.saved-card .tge {
-    font-size: 14px;
-    color: #808080;
-}
-
-.saved-card .actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-.visit-btn {
-    background: #229ED9;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.visit-btn:hover {
-    background: #1e8dc2;
-    transform: translateY(-2px);
-}
-
-.delete-btn {
-    background: rgba(255, 59, 48, 0.1);
-    color: #FF3B30;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.delete-btn:hover {
-    background: rgba(255, 59, 48, 0.2);
-    transform: translateY(-2px);
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    margin: 20px;
-}
-
-.empty-state i {
-    font-size: 48px;
-    margin-bottom: 20px;
-    color: #229ED9;
-}
-
-.empty-state h3 {
-    color: #fff;
-    font-size: 24px;
-    margin-bottom: 12px;
-    font-weight: 600;
-}
-
-.empty-state p {
-    color: #808080;
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 24px;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.connect-btn {
-    background: #229ED9;
-    color: white;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.connect-btn i {
-    font-size: 20px;
-    color: white;
-}
-
-.connect-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 4px 15px rgba(34, 158, 217, 0.3);
-}
-
-/* Update the manage section container */
-.saved-airdrops-container {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Update saved card styles */
-.saved-card {
-    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    margin: 8px 20px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: all 0.2s ease;
-}
-
-.saved-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(124, 255, 77, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-.saved-card .card-content {
-    flex: 1;
-}
-
-.saved-card h3 {
-    color: #fff;
-    font-size: 18px;
-    margin-bottom: 8px;
-}
-
-.saved-card .airdrop-info {
-    display: flex;
-    gap: 16px;
-}
-
-.saved-card .reward,
-.saved-card .tge {
-    color: #808080;
-    font-size: 14px;
-}
-
-.saved-card .actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-.visit-btn {
-    background: #229ED9;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-}
-
-.visit-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-}
-
-.delete-btn {
-    background: rgba(255, 59, 48, 0.1);
-    color: #FF3B30;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.delete-btn:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 59, 48, 0.2);
-}
-
-/* Toast Notification */
-.toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: rgba(124, 255, 77, 0.9);
-    color: #1a1a1a;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-
-/* Add styles for the save button and button group */
-.card-button-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 24px;
+    margin-top: 20px;
 }
 
 .join-btn {
-    flex: 1;
+    flex: 2;
 }
 
 .save-btn {
-    position: static; /* Remove absolute positioning */
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #808080;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: #ffffff;
+    font-size: 16px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .save-btn:hover {
-    background: rgba(124, 255, 77, 0.1);
-    border-color: rgba(124, 255, 77, 0.2);
-    color: #7CFF4D;
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
 }
 
@@ -1812,205 +1440,645 @@ html {
     color: #7CFF4D;
 }
 
-.save-btn.saved:hover {
-    background: rgba(255, 59, 48, 0.1);
-    border-color: rgba(255, 59, 48, 0.2);
-    color: #FF3B30;
+.save-btn.saved i {
+    font-weight: 900;
 }
 
-.save-btn i {
-    font-size: 18px;
+/* Manage Section Styles */
+.manage-section {
+    padding: 0;
+    max-width: 640px;
+    margin: 0 auto;
 }
 
-/* Update saved card styles for better mobile view */
-.saved-card {
-    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
-    border-radius: 16px;
-    padding: 16px;
+.manage-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0 24px;
+    gap: 16px;
+    padding: 0 15px;
+}
+
+.welcome-minimal {
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.9), rgba(25, 25, 25, 0.9));
+    border-radius: 12px;
+    padding: 15px;
+    height: 80px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
 }
 
-.saved-card .card-content {
+.welcome-minimal .welcome-content {
+    padding: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.saved-stats {
+    flex: 0 0 120px;
+    margin: 0;
+    height: 80px;
+}
+
+.stat-card {
+    border-radius: 12px;
+    min-width: 0;
+    padding: 0 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.9), rgba(25, 25, 25, 0.9));
+    border: 1px solid rgba(124, 255, 77, 0.1);
+}
+
+/* Make saved airdrops container match updates container */
+.saved-airdrops-container {
+    margin: 0 15px;
+}
+
+.saved-airdrops {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    width: 100%;
 }
 
-.saved-card h3 {
-    font-size: 18px;
-    color: #fff;
-    margin: 0;
-}
-
-.airdrop-info {
-    display: flex;
-    gap: 12px;
-}
-
-.airdrop-info span {
-    font-size: 14px;
-    color: #808080;
-}
-
-.progress-bar {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.progress-bar .progress {
-    height: 100%;
-    background: #7CFF4D;
-    transition: width 0.3s ease;
-}
-
-/* Update list view styles */
-.saved-airdrops-grid.list-view .saved-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.saved-airdrops-grid.list-view .card-content {
-    flex: 1;
-    flex-direction: row;
-    align-items: center;
-}
-
-.saved-airdrops-grid.list-view .airdrop-info {
-    margin-left: auto;
-    margin-right: 16px;
-}
-
-/* Add styles for the visit button */
-.visit-btn {
-    background: #229ED9;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.visit-btn:hover {
-    background: #1e8dc2;
-    transform: translateY(-2px);
-}
-
-/* Update custom popup styles */
-.custom-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.95);
-    background: #212121;
+/* Make saved airdrop cards match update cards */
+.saved-airdrop-card {
     border-radius: 12px;
-    width: 85%;
-    max-width: 320px;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(25, 25, 25, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
-.custom-popup.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
+.saved-card-content {
+    padding: 15px;
 }
 
-.popup-overlay {
+.no-saved-airdrops {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+/* Platform Warning Styles */
+.platform-warning {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 999;
-    opacity: 0;
-    visibility: hidden;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.warning-content {
+    background: #242424;
+    padding: 32px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 400px;
+    margin: 20px;
+    animation: scaleIn 0.3s ease-out;
+}
+
+.warning-content i {
+    font-size: 48px;
+    color: #FFCC00;
+    margin-bottom: 24px;
+}
+
+.warning-content h3 {
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.warning-content p {
+    color: #808080;
+    font-size: 16px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.open-telegram-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: #229ED9;
+    color: white;
+    border-radius: 16px;
+    font-weight: 600;
+    text-decoration: none;
     transition: all 0.2s ease;
 }
 
-.popup-overlay.show {
-    opacity: 1;
-    visibility: visible;
+.open-telegram-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(34, 158, 217, 0.3);
 }
 
-.popup-content {
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Add these new styles for the manage section */
+.saved-stats {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.stat-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 16px;
     padding: 20px;
+    text-align: center;
+    border: 1px solid rgba(124, 255, 77, 0.1);
+    animation: fadeInUp 0.5s ease-out;
 }
 
-.popup-title {
-    font-size: 16px;
-    color: #fff;
-    margin-bottom: 8px;
-    font-weight: 500;
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #7CFF4D;
+    margin-bottom: 4px;
 }
 
-.popup-message {
+.stat-label {
     color: #808080;
     font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 20px;
 }
 
-.popup-buttons {
-    display: flex;
+.saved-airdrops-container {
+    margin-top: 20px;
+}
+
+.saved-airdrops {
+    display: grid;
     gap: 12px;
-    justify-content: flex-end;
+    grid-template-columns: 1fr;
+    width: 100%;
 }
 
-.popup-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    background: transparent;
+@media (min-width: 640px) {
+    .saved-airdrops {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-.popup-btn.confirm {
-    color: #FF3B30;
+@media (max-width: 500px) {
+    .manage-header-flex {
+        flex-direction: column;
+    }
+    
+    .welcome-minimal, .saved-stats {
+        width: 100%;
+    }
 }
 
-.popup-btn.confirm:hover {
-    background: rgba(255, 59, 48, 0.1);
+/* Saved airdrop cards - compact style */
+.saved-airdrop-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.4s ease-out;
 }
 
-.popup-btn.cancel {
-    color: #7CFF4D;
+.saved-airdrop-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 255, 77, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-.popup-btn.cancel:hover {
+.saved-airdrop-card.removing {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.saved-card-content {
+    padding: 16px;
+}
+
+.saved-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.saved-card-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.reward-tag {
     background: rgba(124, 255, 77, 0.1);
+    color: #7CFF4D;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
 }
 
-.login-btn {
+.saved-brief {
+    color: #808080;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.saved-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.saved-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.compact-join-btn {
     background: linear-gradient(45deg, #7CFF4D, #4CAF50);
     color: #1a1a1a;
-    padding: 12px 24px;
-    border-radius: 12px;
     border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-top: 20px;
+    text-decoration: none;
 }
 
-.login-btn:hover {
+.compact-join-btn:hover {
     transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 4px 15px rgba(124, 255, 77, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 255, 77, 0.2);
+}
+
+.remove-btn {
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    color: #FF3B30;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+    transform: translateY(-2px);
+}
+
+.saved-meta {
+    display: flex;
+    gap: 8px;
+}
+
+.saved-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #7CFF4D;
+    font-size: 12px;
+}
+
+.saved-tag i {
+    font-size: 10px;
+}
+
+/* Save count badge for nav */
+.nav-item .saved-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #7CFF4D;
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 600;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .saved-airdrops {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .saved-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .reward-tag {
+        align-self: flex-start;
+    }
+}
+
+/* Add these styles for the icon-only save button */
+.save-btn.icon-only {
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    padding: 0;
+}
+
+.save-btn.icon-only i {
+    font-size: 18px;
+}
+
+.save-btn.icon-only:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.save-btn.icon-only.saved {
+    background: rgba(124, 255, 77, 0.1);
+    border-color: rgba(124, 255, 77, 0.2);
+}
+
+.save-btn.icon-only.saved i {
+    color: #7CFF4D;
+    font-weight: 900;
+}
+
+/* Confirmation modal styles */
+.confirmation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.confirmation-content {
+    background: #242424;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 320px;
+    text-align: center;
+    animation: scaleIn 0.2s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.confirmation-content p {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.cancel-btn {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.confirm-btn {
+    padding: 10px 16px;
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    border-radius: 10px;
+    color: #FF3B30;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Add styles for the compact side-by-side layout */
+.manage-header-flex {
+    display: flex;
+    align-items: stretch;
+    margin: 15px 0 20px;
+    gap: 15px;
+    max-width: 640px;
+    width: 100%;
+}
+
+.welcome-minimal {
+    flex: 1.5;
+    min-width: 0;
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.9), rgba(25, 25, 25, 0.9));
+    border-radius: 16px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    height: auto;
+}
+
+.welcome-minimal .welcome-content {
+    padding: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.welcome-minimal .wave-emoji {
+    font-size: 24px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.welcome-minimal .welcome-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.welcome-minimal .welcome-text h2 {
+    font-size: 18px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.welcome-minimal .welcome-text p {
+    font-size: 14px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.saved-stats {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.stat-card {
+    min-width: 0;
+    width: 100%;
+    padding: 15px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.9), rgba(25, 25, 25, 0.9));
+    border: 1px solid rgba(124, 255, 77, 0.1);
+    border-radius: 16px;
+}
+
+/* Make the cards in the saved airdrops section more consistent */
+.saved-airdrop-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(25, 25, 25, 0.95));
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.saved-airdrop-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 255, 77, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Improve responsiveness */
+@media (max-width: 600px) {
+    .manage-header-flex {
+        flex-direction: column;
+    }
+    
+    .welcome-minimal, .saved-stats {
+        width: 100%;
+    }
+    
+    .stat-card {
+        width: 100%;
+    }
+}
+
+/* Fix the minimal-btn styling */
+.minimal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(45deg, #7CFF4D, #4CAF50);
+    color: #1a1a1a;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.minimal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 255, 77, 0.2);
 } 
