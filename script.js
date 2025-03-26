@@ -232,6 +232,9 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // First detect platform and track visit
+    trackUserVisit();
+    
     // Handle splash screen and telegram popup sequence
     const splashScreen = document.querySelector('.splash-screen');
     const telegramPopup = document.querySelector('.telegram-popup');
@@ -592,6 +595,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Then initialize saved buttons
     initializeSavedButtons();
+
+    // Add this to your DOMContentLoaded handler
+    setTimeout(() => {
+        const debugInfo = document.createElement('div');
+        debugInfo.style.position = 'fixed';
+        debugInfo.style.bottom = '10px';
+        debugInfo.style.right = '10px';
+        debugInfo.style.background = 'rgba(0,0,0,0.7)';
+        debugInfo.style.color = 'white';
+        debugInfo.style.padding = '10px';
+        debugInfo.style.borderRadius = '5px';
+        debugInfo.style.fontSize = '12px';
+        debugInfo.style.zIndex = '9999';
+        debugInfo.innerHTML = `
+            Platform: ${localStorage.getItem('platform') || 'unknown'}<br>
+            User: ${localStorage.getItem('username') || 'unknown'}<br>
+            ID: ${localStorage.getItem('userId') || 'unknown'}<br>
+            Telegram: ${window.Telegram ? 'Available' : 'Not Available'}
+        `;
+        document.body.appendChild(debugInfo);
+    }, 2000);
 });
 
 // Update the updateNewTags function to use actual current time
@@ -1148,7 +1172,8 @@ async function handleSaveAirdrop(airdropId, event) {
             body: JSON.stringify({
                 airdropId,
                 userId,
-                username: localStorage.getItem('username') || 'web_user'
+                username: localStorage.getItem('username') || 'web_user',
+                platform: localStorage.getItem('platform') || 'web'
             })
         }).catch(error => {
             console.error('Error saving to server:', error);
@@ -1286,22 +1311,35 @@ function initializeSavedAirdropsSearch() {
 
 // Add this function to your script.js
 function trackUserVisit() {
+    // Detect platform first
+    const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe.user;
+    const platform = isTelegram ? 'telegram' : 'web';
+    
+    // Store platform in localStorage for consistent use
+    localStorage.setItem('platform', platform);
+    
     let userId = localStorage.getItem('userId');
-    const platform = window.Telegram && window.Telegram.WebApp ? 'telegram' : 'web';
     let username = localStorage.getItem('username');
     
-    // Generate new ID if not exists
-    if (!userId) {
-        userId = 'user_' + Math.random().toString(36).substring(2, 15);
+    // Special handling for Telegram users
+    if (isTelegram) {
+        const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
+        userId = 'telegram_' + telegramUser.id;
+        username = telegramUser.username || `telegram_user_${telegramUser.id}`;
+        
+        // Store these values
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('username', username);
+        
+        console.log('Detected Telegram user:', username, userId);
+    } else if (!userId) {
+        // Generate new ID for web users if none exists
+        userId = 'web_' + Math.random().toString(36).substring(2, 15);
         localStorage.setItem('userId', userId);
     }
     
-    // If in Telegram, get username
-    if (platform === 'telegram' && window.Telegram.WebApp.initDataUnsafe.user) {
-        username = window.Telegram.WebApp.initDataUnsafe.user.username || 
-                  `telegram_user_${window.Telegram.WebApp.initDataUnsafe.user.id}`;
-        localStorage.setItem('username', username);
-    }
+    // Make sure platform is included in API call
+    console.log(`Tracking user visit: ${username} (${userId}) on platform: ${platform}`);
     
     // Track visit via API
     fetch(`${API_BASE_URL}/api/user-visit`, {
@@ -1311,7 +1349,7 @@ function trackUserVisit() {
         },
         body: JSON.stringify({
             userId,
-            platform,
+            platform, // This is key - make sure platform is sent
             username
         })
     })
