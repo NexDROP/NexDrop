@@ -75,7 +75,7 @@ function shouldShowNewTag(dateString) {
 
 // Add this function to render airdrop cards
 function renderAirdropCard(airdrop) {
-    // Get saved status directly from user storage
+    // Get the current user's saved airdrops using the user-specific storage
     const userStorage = getUserStorage();
     const savedAirdropIds = JSON.parse(userStorage.getItem('savedAirdrops') || '[]')
         .map(id => typeof id === 'string' ? parseInt(id) : id);
@@ -232,6 +232,14 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize user and saved airdrops
+    initializeUserAndSavedAirdrops();
+    
+    // Double-check all save buttons after everything is loaded
+    setTimeout(() => {
+        updateAllSaveButtons();
+    }, 1000);
+
     // Handle splash screen and telegram popup sequence
     const splashScreen = document.querySelector('.splash-screen');
     const telegramPopup = document.querySelector('.telegram-popup');
@@ -873,7 +881,7 @@ function showConfirmationModal(message, onConfirm) {
     modal.style.display = 'flex';
 }
 
-// Add this helper function for user-specific localStorage
+// Add this getUserStorage function which is referenced but not defined
 function getUserStorage() {
     const userId = localStorage.getItem('userId') || 'anonymous';
     
@@ -886,6 +894,17 @@ function getUserStorage() {
         },
         removeItem: function(key) {
             return localStorage.removeItem(`${userId}_${key}`);
+        },
+        getAllItems: function() {
+            const result = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const fullKey = localStorage.key(i);
+                if (fullKey.startsWith(`${userId}_`)) {
+                    const key = fullKey.replace(`${userId}_`, '');
+                    result[key] = localStorage.getItem(fullKey);
+                }
+            }
+            return result;
         }
     };
 }
@@ -1000,19 +1019,23 @@ function checkEmptySavedSection() {
 
 // Add a helper function to update the saved count display
 function updateSavedCountDisplay() {
-    const savedAirdropIds = JSON.parse(localStorage.getItem(getUserStorage().getKey('savedAirdrops')) || '[]');
-    
-    // Update the count in the stats card
-    const savedCountElement = document.getElementById('savedCount');
-    if (savedCountElement) {
-        savedCountElement.textContent = savedAirdropIds.length;
-    }
+    const userStorage = getUserStorage();
+    const savedAirdropIds = JSON.parse(userStorage.getItem('savedAirdrops') || '[]');
     
     // Update badge on manage tab
     const manageBadge = document.querySelector('.nav-item[data-section="manage"] .saved-count');
     if (manageBadge) {
         manageBadge.textContent = savedAirdropIds.length;
         manageBadge.style.display = savedAirdropIds.length > 0 ? 'flex' : 'none';
+    } else {
+        // Create badge if it doesn't exist
+        const manageTab = document.querySelector('.nav-item[data-section="manage"]');
+        if (manageTab && savedAirdropIds.length > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'saved-count';
+            badge.textContent = savedAirdropIds.length;
+            manageTab.appendChild(badge);
+        }
     }
 }
 
@@ -1188,12 +1211,12 @@ function updateManageSectionWithLocalData() {
         return;
     }
 
-    // Use user-specific storage
+    // Get locally saved airdrop IDs using user-specific storage
     const userStorage = getUserStorage();
     const savedAirdropIds = JSON.parse(userStorage.getItem('savedAirdrops') || '[]')
         .map(id => typeof id === 'string' ? parseInt(id) : id);
     
-    console.log('Saved airdrop IDs from userStorage:', savedAirdropIds);
+    console.log('Current user saved airdrops:', savedAirdropIds);
     
     // Find the matching airdrops from the data
     const savedAirdrops = airdropsData.filter(airdrop => 
@@ -1215,21 +1238,11 @@ function updateManageSectionWithLocalData() {
             .join('');
     }
     
-    // Update badge on manage tab - using user-specific data
-    const manageBadge = document.querySelector('.nav-item[data-section="manage"] .saved-count');
-    if (manageBadge) {
-        manageBadge.textContent = savedAirdrops.length;
-        manageBadge.style.display = savedAirdrops.length > 0 ? 'flex' : 'none';
-    } else {
-        // Create badge if it doesn't exist
-        const manageTab = document.querySelector('.nav-item[data-section="manage"]');
-        if (manageTab && savedAirdrops.length > 0) {
-            const badge = document.createElement('span');
-            badge.className = 'saved-count';
-            badge.textContent = savedAirdrops.length;
-            manageTab.appendChild(badge);
-        }
-    }
+    // Update badge on manage tab
+    updateSavedCountDisplay();
+    
+    // Initialize search
+    initializeSavedAirdropsSearch();
 }
 
 // Add this function to initialize search functionality for manage section
@@ -1267,7 +1280,7 @@ function initializeSavedAirdropsSearch() {
             noSavedMessage.querySelector('p').textContent = searchTerm ? 
                 'No saved airdrops match your search' : 'No saved airdrops';
         } else {
-            savedAirdropsContainer.style.display = 'flex';
+            savedAirdropsContainer.style.display = 'grid';
             noSavedMessage.style.display = 'none';
             savedAirdropsContainer.innerHTML = filteredAirdrops
                 .map(airdrop => renderSavedAirdropCard(airdrop))
@@ -1338,51 +1351,4 @@ function initializeSavedButtons() {
             saveBtn.querySelector('i').className = 'fas fa-bookmark';
         }
     });
-}
-
-// Add this function to verify and fix button states based on actual saved data
-function verifyAndFixSaveButtonStates() {
-    const userStorage = getUserStorage();
-    const savedAirdropIds = JSON.parse(userStorage.getItem('savedAirdrops') || '[]')
-        .map(id => typeof id === 'string' ? parseInt(id) : id);
-    
-    // Check all save buttons and fix their state
-    document.querySelectorAll('.airdrop-card').forEach(card => {
-        const cardId = parseInt(card.dataset.id);
-        const saveBtn = card.querySelector('.save-btn');
-        
-        if (saveBtn) {
-            const shouldBeSaved = savedAirdropIds.includes(cardId);
-            const isSaved = saveBtn.classList.contains('saved');
-            
-            // Fix inconsistent state
-            if (shouldBeSaved !== isSaved) {
-                console.log(`Fixing inconsistent state for airdrop ${cardId}: should be ${shouldBeSaved}, is ${isSaved}`);
-                
-                if (shouldBeSaved) {
-                    saveBtn.classList.add('saved');
-                    saveBtn.querySelector('i').className = 'fas fa-bookmark';
-                } else {
-                    saveBtn.classList.remove('saved');
-                    saveBtn.querySelector('i').className = 'far fa-bookmark';
-                }
-            }
-        }
-    });
-}
-
-// Add this to your DOMContentLoaded handler to ensure all events happen in correct order
-document.addEventListener('DOMContentLoaded', function() {
-    // First initialize user
-    initializeUserAndSavedAirdrops();
-    
-    // Add event listener for tab switching to ensure buttons are correct after switching tabs
-    document.querySelectorAll('.nav-item').forEach(navItem => {
-        navItem.addEventListener('click', function() {
-            // After small delay to allow tab content to render
-            setTimeout(() => {
-                verifyAndFixSaveButtonStates();
-            }, 300);
-        });
-    });
-}); 
+} 
