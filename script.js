@@ -232,9 +232,6 @@ function renderAirdrops() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // First detect platform and track visit
-    trackUserVisit();
-    
     // Handle splash screen and telegram popup sequence
     const splashScreen = document.querySelector('.splash-screen');
     const telegramPopup = document.querySelector('.telegram-popup');
@@ -595,27 +592,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Then initialize saved buttons
     initializeSavedButtons();
-
-    // Add this to your DOMContentLoaded handler
-    setTimeout(() => {
-        const debugInfo = document.createElement('div');
-        debugInfo.style.position = 'fixed';
-        debugInfo.style.bottom = '10px';
-        debugInfo.style.right = '10px';
-        debugInfo.style.background = 'rgba(0,0,0,0.7)';
-        debugInfo.style.color = 'white';
-        debugInfo.style.padding = '10px';
-        debugInfo.style.borderRadius = '5px';
-        debugInfo.style.fontSize = '12px';
-        debugInfo.style.zIndex = '9999';
-        debugInfo.innerHTML = `
-            Platform: ${localStorage.getItem('platform') || 'unknown'}<br>
-            User: ${localStorage.getItem('username') || 'unknown'}<br>
-            ID: ${localStorage.getItem('userId') || 'unknown'}<br>
-            Telegram: ${window.Telegram ? 'Available' : 'Not Available'}
-        `;
-        document.body.appendChild(debugInfo);
-    }, 2000);
 });
 
 // Update the updateNewTags function to use actual current time
@@ -1047,6 +1023,9 @@ function switchToAirdrops() {
 
 // Replace the existing Telegram-specific code
 function initializeTelegramUser() {
+    const platform = getPlatform();
+    localStorage.setItem('platform', platform);
+    
     // Check if running in Telegram Web App
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe.user) {
         // Get Telegram user ID
@@ -1120,6 +1099,7 @@ async function handleSaveAirdrop(airdropId, event) {
             saveBtn.querySelector('i').className = 'far fa-bookmark';
             
             // If we're on server, remove from server too
+            const platform = localStorage.getItem('platform') || getPlatform();
             fetch(`${API_BASE_URL}/api/remove-airdrop`, {
                 method: 'POST',
                 headers: {
@@ -1127,7 +1107,8 @@ async function handleSaveAirdrop(airdropId, event) {
                 },
                 body: JSON.stringify({
                     airdropId,
-                    userId
+                    userId,
+                    platform: platform
                 })
             }).catch(error => {
                 console.error('Error removing from server:', error);
@@ -1164,6 +1145,7 @@ async function handleSaveAirdrop(airdropId, event) {
         saveBtn.querySelector('i').className = 'fas fa-bookmark';
         
         // If we're on server, save to server too
+        const platform = localStorage.getItem('platform') || getPlatform();
         fetch(`${API_BASE_URL}/api/save-airdrop`, {
             method: 'POST',
             headers: {
@@ -1173,7 +1155,7 @@ async function handleSaveAirdrop(airdropId, event) {
                 airdropId,
                 userId,
                 username: localStorage.getItem('username') || 'web_user',
-                platform: localStorage.getItem('platform') || 'web'
+                platform: platform
             })
         }).catch(error => {
             console.error('Error saving to server:', error);
@@ -1311,35 +1293,25 @@ function initializeSavedAirdropsSearch() {
 
 // Add this function to your script.js
 function trackUserVisit() {
-    // Detect platform first
-    const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe.user;
-    const platform = isTelegram ? 'telegram' : 'web';
-    
-    // Store platform in localStorage for consistent use
-    localStorage.setItem('platform', platform);
-    
     let userId = localStorage.getItem('userId');
+    const platform = getPlatform();
     let username = localStorage.getItem('username');
     
-    // Special handling for Telegram users
-    if (isTelegram) {
-        const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
-        userId = 'telegram_' + telegramUser.id;
-        username = telegramUser.username || `telegram_user_${telegramUser.id}`;
-        
-        // Store these values
-        localStorage.setItem('userId', userId);
-        localStorage.setItem('username', username);
-        
-        console.log('Detected Telegram user:', username, userId);
-    } else if (!userId) {
-        // Generate new ID for web users if none exists
-        userId = 'web_' + Math.random().toString(36).substring(2, 15);
+    // Generate new ID if not exists
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substring(2, 15);
         localStorage.setItem('userId', userId);
     }
     
-    // Make sure platform is included in API call
-    console.log(`Tracking user visit: ${username} (${userId}) on platform: ${platform}`);
+    // If in Telegram, get username
+    if (platform === 'telegram' && window.Telegram.WebApp.initDataUnsafe.user) {
+        username = window.Telegram.WebApp.initDataUnsafe.user.username || 
+                  `telegram_user_${window.Telegram.WebApp.initDataUnsafe.user.id}`;
+        localStorage.setItem('username', username);
+    }
+    
+    // Store platform in localStorage for consistency
+    localStorage.setItem('platform', platform);
     
     // Track visit via API
     fetch(`${API_BASE_URL}/api/user-visit`, {
@@ -1349,7 +1321,7 @@ function trackUserVisit() {
         },
         body: JSON.stringify({
             userId,
-            platform, // This is key - make sure platform is sent
+            platform,
             username
         })
     })
@@ -1423,4 +1395,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
     });
-}); 
+});
+
+// 1. Add this function to centralize platform detection
+function getPlatform() {
+    // Check if Telegram WebApp is available and initialized
+    if (window.Telegram && 
+        window.Telegram.WebApp && 
+        window.Telegram.WebApp.initDataUnsafe &&
+        window.Telegram.WebApp.initDataUnsafe.user) {
+        return 'telegram';
+    }
+    return 'web';
+} 
