@@ -1,3 +1,5 @@
+const API_BASE_URL = 'https://your-backend-url.com'; // You'll replace this with your actual backend URL
+
 const airdropsData = [
     {
         id: 1,
@@ -71,38 +73,8 @@ function shouldShowNewTag(dateString) {
     return diffInHours <= 24;
 }
 
-// Add these user authentication functions
-function initializeAuth() {
-    // Check if user is already logged in
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        updateUIForLoggedInUser(currentUser);
-    }
-}
-
-// Simplify getCurrentUser to just get Telegram WebApp user
-function getCurrentUser() {
-    const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    return telegramUser ? {
-        id: telegramUser.id.toString()
-    } : null;
-}
-
-function getUserStorageKey(userId) {
-    return `savedAirdrops_${userId}`;
-}
-
-function updateUIForLoggedInUser(user) {
-    // Update any UI elements that should reflect logged-in state
-    loadSavedAirdrops();
-    updateSaveButtonStates();
-}
-
 // Add this function to render airdrop cards
 function renderAirdropCard(airdrop) {
-    const currentUser = getCurrentUser();
-    const userId = currentUser ? currentUser.id : null;
-    
     const isNew = shouldShowNewTag(airdrop.datePosted);
     
     const investmentAndFundingInfo = `
@@ -128,22 +100,6 @@ function renderAirdropCard(airdrop) {
             </div>
             ` : ''}
         </div>`;
-
-    const savedAirdrops = userId ? getSavedAirdrops(userId) : [];
-    const isSaved = savedAirdrops.some(saved => saved.id === airdrop.id);
-
-    const buttonGroup = `
-        <div class="card-button-group">
-            <a href="${airdrop.joinLink}" target="_blank" class="join-btn">
-                JOIN AIRDROP
-            </a>
-            <button class="save-btn ${isSaved ? 'saved' : ''}" 
-                    data-id="${airdrop.id}" 
-                    onclick="handleSaveClick(${JSON.stringify(airdrop).replace(/"/g, '&quot;')})">
-                <i class="fas ${isSaved ? 'fa-check' : 'fa-bookmark'}"></i>
-            </button>
-        </div>
-    `;
 
     return `
         <div class="airdrop-card" data-date="${airdrop.datePosted}" data-id="${airdrop.id}">
@@ -186,7 +142,14 @@ function renderAirdropCard(airdrop) {
                     </div>
                 </div>
 
-                ${buttonGroup}
+                <div class="card-actions">
+                    <a href="${airdrop.joinLink}" target="_blank" class="join-btn">
+                        JOIN AIRDROP
+                    </a>
+                    <button class="save-btn icon-only" onclick="handleSaveAirdrop(${airdrop.id}, event)" aria-label="${airdrop.id in (JSON.parse(localStorage.getItem('savedAirdrops') || '[]')) ? 'Unsave airdrop' : 'Save airdrop'}">
+                        <i class="${airdrop.id in (JSON.parse(localStorage.getItem('savedAirdrops') || '[]')) ? 'fas' : 'far'} fa-bookmark"></i>
+                    </button>
+                </div>
 
                 <span class="time-posted">
                     <i class="far fa-clock"></i>
@@ -249,30 +212,19 @@ function renderAirdrops() {
 
     // Initial observation
     observeCards();
+
+    // Update saved buttons state based on localStorage
+    const savedAirdropIds = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    savedAirdropIds.forEach(id => {
+        const saveBtn = document.querySelector(`.airdrop-card[data-id="${id}"] .save-btn`);
+        if (saveBtn) {
+            saveBtn.classList.add('saved');
+            saveBtn.querySelector('i').className = 'fas fa-bookmark';
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Telegram WebApp
-    if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-        
-        // Get user data
-        const userData = window.Telegram.WebApp.initDataUnsafe?.user;
-        if (userData) {
-            const user = {
-                id: userData.id.toString(),
-                username: userData.username,
-                firstName: userData.first_name,
-                lastName: userData.last_name
-            };
-            
-            // Store user data
-            localStorage.setItem('userData', JSON.stringify(user));
-            updateUIForLoggedInUser(user);
-        }
-    }
-
     // Handle splash screen and telegram popup sequence
     const splashScreen = document.querySelector('.splash-screen');
     const telegramPopup = document.querySelector('.telegram-popup');
@@ -490,9 +442,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize authentication
-    initializeAuth();
-    
     // Render airdrops
     renderAirdrops();
     
@@ -507,7 +456,129 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initializeUpdates();
     initializeUpdatesSearch();
-    initializeManageSection();
+
+    // Initialize the manage section HTML
+    document.getElementById('manage-section').innerHTML = `
+        <div class="header">
+            <div class="header-content">
+                <h1>Saved Airdrops</h1>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="savedSearchInput" placeholder="Search saved airdrops...">
+                    <button class="clear-search" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="manage-header-flex">
+            <div class="welcome-minimal">
+                <div class="welcome-content">
+                    <div class="wave-emoji">📌</div>
+                    <div class="welcome-text">
+                        <h2>Your Favorites</h2>
+                        <p>Access saved airdrops anytime</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="saved-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="savedCount">0</div>
+                    <div class="stat-label">Saved Airdrops</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="saved-airdrops-container">
+            <div class="saved-airdrops">
+                <!-- Saved airdrops will be rendered here -->
+            </div>
+            
+            <div class="no-saved-airdrops" style="display: none;">
+                <i class="far fa-bookmark"></i>
+                <p>No saved airdrops</p>
+                <a href="#" class="minimal-btn" onclick="switchToAirdrops()">
+                    Explore
+                </a>
+            </div>
+        </div>
+    `;
+    
+    // Remove any "coming soon" content if it exists
+    const comingSoonContent = document.querySelector('.coming-soon-container');
+    if (comingSoonContent) {
+        comingSoonContent.remove();
+    }
+    
+    // Initialize user ID if not already set
+    if (!localStorage.getItem('userId')) {
+        localStorage.setItem('userId', 'user_' + Math.random().toString(36).substring(2, 15));
+    }
+    
+    // Update saved buttons state based on localStorage
+    const savedAirdropIds = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    savedAirdropIds.forEach(id => {
+        const saveBtn = document.querySelector(`.airdrop-card[data-id="${id}"] .save-btn`);
+        if (saveBtn) {
+            saveBtn.classList.add('saved');
+            saveBtn.querySelector('i').className = 'fas fa-bookmark';
+        }
+    });
+    
+    // Initialize manage section
+    updateManageSectionWithLocalData();
+
+    // Remove the old modal if it exists
+    const oldModal = document.getElementById('confirmationModal');
+    if (oldModal) {
+        oldModal.remove();
+    }
+
+    // Create a new confirmation modal
+    const newModal = document.createElement('div');
+    newModal.id = 'confirmationModal';
+    newModal.className = 'confirmation-modal';
+    newModal.innerHTML = `
+        <div class="confirmation-content">
+            <p id="confirmationMessage">Are you sure you want to remove this airdrop?</p>
+            <div class="confirmation-buttons">
+                <button id="cancelButton" class="cancel-btn">Cancel</button>
+                <button id="confirmButton" class="confirm-btn">Remove</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(newModal);
+
+    // Also ensure the saved count is correctly displayed initially
+    updateSavedCountDisplay();
+
+    // Specifically target and remove any lock icons from the manage tab
+    const manageTab = document.querySelector('.nav-item[data-section="manage"]');
+    if (manageTab) {
+        // Replace all icon elements in the manage tab with a bookmark icon
+        const icons = manageTab.querySelectorAll('i');
+        icons.forEach(icon => {
+            // Replace with bookmark icon regardless of current class
+            icon.className = 'fas fa-bookmark';
+        });
+        
+        // Also handle any ::after pseudo-elements that might be showing a lock
+        // Add a style tag to override any pseudo-elements
+        const style = document.createElement('style');
+        style.textContent = `
+            .nav-item[data-section="manage"]::after,
+            .nav-item[data-section="manage"] *::after {
+                content: none !important;
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Track user visit immediately when page loads
+    trackUserVisit();
 });
 
 // Update the updateNewTags function to use actual current time
@@ -726,362 +797,509 @@ function addNewUpdate(updateData) {
     renderUpdates(currentFilter, searchTerm);
 }
 
-// Simplify initializeManageSection
-function initializeManageSection() {
-    loadSavedAirdrops();
-    setupManageSectionControls();
+// Update the renderSavedAirdropCard function
+function renderSavedAirdropCard(airdrop) {
+    return `
+        <div class="saved-airdrop-card" data-id="${airdrop.id}">
+            <div class="saved-card-content">
+                <div class="saved-card-header">
+                    <h3>${airdrop.title}</h3>
+                    <div class="reward-tag">${airdrop.expectedReward}</div>
+                </div>
+                
+                <p class="saved-brief">${airdrop.brief.substring(0, 100)}${airdrop.brief.length > 100 ? '...' : ''}</p>
+                
+                <div class="saved-card-footer">
+                    <div class="saved-card-actions">
+                        <a href="${airdrop.joinLink}" target="_blank" class="compact-join-btn">
+                            VISIT
+                        </a>
+                        <button class="remove-btn" onclick="handleRemoveAirdrop(${airdrop.id}, event)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="saved-meta">
+                        <span class="saved-tag">
+                            <i class="fas fa-bookmark"></i>
+                            Saved
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
-function setupManageSectionControls() {
-    const viewBtns = document.querySelectorAll('.view-btn');
-    const savedAirdropsContainer = document.querySelector('.saved-airdrops-container');
-    const searchInput = document.getElementById('manageSearchInput');
-    const clearSearchBtn = searchInput?.parentElement.querySelector('.clear-search');
+// Replace the existing showConfirmationModal function with this improved version
+function showConfirmationModal(message, onConfirm) {
+    const modal = document.getElementById('confirmationModal');
+    const msgEl = document.getElementById('confirmationMessage');
+    const confirmBtn = document.getElementById('confirmButton');
+    const cancelBtn = document.getElementById('cancelButton');
     
-    if (viewBtns && savedAirdropsContainer) {
-        viewBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                viewBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const view = btn.dataset.view;
-                savedAirdropsContainer.className = `saved-airdrops-container ${view}-view`;
-            });
-        });
-    }
-
-    if (searchInput && clearSearchBtn) {
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            clearSearchBtn.style.display = searchTerm ? 'flex' : 'none';
-            filterSavedAirdrops(searchTerm);
-        });
-
-        clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            clearSearchBtn.style.display = 'none';
-            filterSavedAirdrops('');
-            searchInput.focus();
-        });
-    }
-}
-
-// Update storage functions to be user-specific
-function getSavedAirdrops(userId) {
-    const storageKey = getUserStorageKey(userId);
-    return JSON.parse(localStorage.getItem(storageKey) || '[]');
-}
-
-function setSavedAirdrops(userId, airdrops) {
-    const storageKey = getUserStorageKey(userId);
-    localStorage.setItem(storageKey, JSON.stringify(airdrops));
-}
-
-// Simplify toggleSaveAirdrop
-function toggleSaveAirdrop(airdropData) {
-    const currentUser = getCurrentUser();
-    const userId = currentUser?.id;
-    const savedAirdrops = getSavedAirdrops(userId);
-    const isSaved = savedAirdrops.some(saved => saved.id === airdropData.id);
+    // Set the message
+    msgEl.textContent = message;
     
-    if (isSaved) {
-        showCustomPopup(
-            'Unsave Airdrop',
-            'Are you sure you want to remove this airdrop from your saved list?',
-            'Remove',
-            'Cancel',
-            () => {
-                const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== airdropData.id);
-                setSavedAirdrops(userId, updatedAirdrops);
+    // Remove any existing event listeners to prevent duplicates
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    
+    // Add new event listeners
+    newConfirmBtn.addEventListener('click', function() {
+        onConfirm();
+        modal.style.display = 'none';
+    });
+    
+    newCancelBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+    
+    // Show the modal
+    modal.style.display = 'flex';
+}
+
+// Fix handleSaveAirdrop function to properly toggle save/unsave
+function handleSaveAirdrop(airdropId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    // Convert airdropId to number if it's a string (for comparison)
+    airdropId = typeof airdropId === 'string' ? parseInt(airdropId) : airdropId;
+    
+    console.log('Save button clicked for airdrop:', airdropId);
+    
+    // Get current saved airdrops
+    let savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]')
+        .map(id => typeof id === 'string' ? parseInt(id) : id); // Ensure all IDs are numbers
+        
+    // Check if already saved
+    const isAlreadySaved = savedAirdrops.includes(airdropId);
+    
+    // Find the save button
+    const saveBtn = document.querySelector(`.airdrop-card[data-id="${airdropId}"] .save-btn`);
+    
+    if (isAlreadySaved) {
+        // Show confirmation dialog for unsaving
+        showConfirmationModal(
+            'Are you sure you want to unsave this airdrop?', 
+            function() {
+                // Remove from saved list
+                savedAirdrops = savedAirdrops.filter(id => id !== airdropId);
+                localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
                 
-                document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
-                    btn.classList.remove('saved');
-                    btn.querySelector('i').className = 'fas fa-bookmark';
-                });
+                // Update button appearance
+                if (saveBtn) {
+                    saveBtn.classList.remove('saved');
+                    saveBtn.querySelector('i').className = 'far fa-bookmark';
+                }
                 
-                showToast('Airdrop removed from saved list');
-                updateManageSection();
+                // Update manage section
+                updateManageSectionWithLocalData();
+                updateSavedCountDisplay();
             }
         );
     } else {
-        const newSavedAirdrop = {
-            ...airdropData,
-            savedAt: new Date().toISOString()
-        };
+        // Just save without confirmation
+        savedAirdrops.push(airdropId);
+        localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
         
-        savedAirdrops.push(newSavedAirdrop);
-        setSavedAirdrops(userId, savedAirdrops);
+        // Update button appearance
+        if (saveBtn) {
+            saveBtn.classList.add('saved');
+            saveBtn.querySelector('i').className = 'fas fa-bookmark';
+        }
         
-        document.querySelectorAll(`.save-btn[data-id="${airdropData.id}"]`).forEach(btn => {
-            btn.classList.add('saved');
-            btn.querySelector('i').className = 'fas fa-check';
-        });
-        
-        showToast('Airdrop saved successfully!');
-        updateManageSection();
+        // Update manage section
+        updateManageSectionWithLocalData();
+        updateSavedCountDisplay();
     }
 }
 
-// Simplify handleSaveClick to remove authentication checks
-function handleSaveClick(airdropData) {
-    toggleSaveAirdrop(airdropData);
-}
-
-// Update the loadSavedAirdrops function
-function loadSavedAirdrops() {
-    const currentUser = getCurrentUser();
-    const userId = currentUser?.id;
-    const savedAirdrops = getSavedAirdrops(userId);
-    const container = document.querySelector('.saved-airdrops-container');
-    
-    if (!container) return;
-    
-    if (savedAirdrops.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-bookmark"></i>
-                <h3>No saved airdrops</h3>
-                <p>Start saving airdrops to track them here!</p>
-            </div>
-        `;
-        return;
+// Fix handleRemoveAirdrop function
+function handleRemoveAirdrop(airdropId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
     }
     
-    container.innerHTML = savedAirdrops
-        .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt))
-        .map(airdrop => renderSavedCard(airdrop))
-        .join('');
-}
-
-// Update the deleteSavedAirdrop function
-function deleteSavedAirdrop(id) {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
-
-    showCustomPopup(
-        'Remove Saved Airdrop',
-        'Are you sure you want to remove this airdrop from your saved list?',
-        'Remove',
-        'Cancel',
-        () => {
-            const savedAirdrops = getSavedAirdrops(currentUser.id);
-            const updatedAirdrops = savedAirdrops.filter(airdrop => airdrop.id !== id);
-            setSavedAirdrops(currentUser.id, updatedAirdrops);
+    // Convert airdropId to number if it's a string
+    airdropId = typeof airdropId === 'string' ? parseInt(airdropId) : airdropId;
+    
+    console.log('Remove button clicked for airdrop:', airdropId);
+    
+    // Show confirmation for removal
+    showConfirmationModal(
+        'Are you sure you want to remove this saved airdrop?',
+        function() {
+            // Remove from localStorage
+            let savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]')
+                .map(id => typeof id === 'string' ? parseInt(id) : id);
+                
+            savedAirdrops = savedAirdrops.filter(id => id !== airdropId);
+            localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
             
-            document.querySelectorAll(`.save-btn[data-id="${id}"]`).forEach(btn => {
-                btn.classList.remove('saved');
-                btn.querySelector('i').className = 'fas fa-bookmark';
-            });
+            // Update any visible save buttons
+            const saveBtn = document.querySelector(`.airdrop-card[data-id="${airdropId}"] .save-btn`);
+            if (saveBtn) {
+                saveBtn.classList.remove('saved');
+                saveBtn.querySelector('i').className = 'far fa-bookmark';
+            }
             
-            showToast('Airdrop removed from saved list');
-            updateManageSection();
+            // Remove the card with animation
+            const card = document.querySelector(`.saved-airdrop-card[data-id="${airdropId}"]`);
+            if (card) {
+                card.classList.add('removing');
+                setTimeout(() => {
+                    card.remove();
+                    checkEmptySavedSection();
+                }, 300);
+            }
+            
+            // Update saved count
+            updateSavedCountDisplay();
         }
     );
 }
 
-// Update the renderSavedCard function
-function renderSavedCard(airdrop) {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return '';
-
-    return `
-        <div class="saved-card" data-id="${airdrop.id}">
-            <div class="card-content">
-                <h3>${airdrop.title}</h3>
-                <div class="airdrop-info">
-                    <span class="reward">${airdrop.expectedReward}</span>
-                    <span class="tge">${airdrop.expectedTGE}</span>
-                </div>
-            </div>
-            <div class="actions">
-                <a href="${airdrop.joinLink}" target="_blank" class="visit-btn">
-                    <i class="fas fa-external-link-alt"></i>
-                    Visit
-                </a>
-                <button class="delete-btn" onclick="deleteSavedAirdrop(${airdrop.id})">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// Update statistics
-function updateStats() {
-    const savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
-    const completedAirdrops = savedAirdrops.filter(airdrop => airdrop.progress === 100);
-    
-    document.getElementById('savedCount').textContent = savedAirdrops.length;
-    document.getElementById('completedCount').textContent = completedAirdrops.length;
-}
-
-// Update the showCustomPopup function
-function showCustomPopup(title, message, confirmText, cancelText, onConfirm) {
-    const overlay = document.createElement('div');
-    overlay.className = 'popup-overlay';
-    
-    const popup = document.createElement('div');
-    popup.className = 'custom-popup';
-    
-    popup.innerHTML = `
-        <div class="popup-content">
-            <h3 class="popup-title">${title}</h3>
-            <p class="popup-message">${message}</p>
-            <div class="popup-buttons">
-                <button class="popup-btn cancel">${cancelText}</button>
-                <button class="popup-btn confirm">${confirmText}</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(overlay);
-    document.body.appendChild(popup);
-    
-    requestAnimationFrame(() => {
-        overlay.classList.add('show');
-        popup.classList.add('show');
-    });
-    
-    const confirmBtn = popup.querySelector('.popup-btn.confirm');
-    const cancelBtn = popup.querySelector('.popup-btn.cancel');
-    
-    function closePopup() {
-        overlay.classList.remove('show');
-        popup.classList.remove('show');
-        setTimeout(() => {
-            document.body.removeChild(overlay);
-            document.body.removeChild(popup);
-        }, 200);
-    }
-    
-    confirmBtn.addEventListener('click', () => {
-        onConfirm();
-        closePopup();
-    });
-    
-    cancelBtn.addEventListener('click', closePopup);
-    overlay.addEventListener('click', closePopup);
-}
-
-// Update the updateManageSection function
-function updateManageSection() {
-    const manageSection = document.getElementById('manage-section');
-    if (manageSection && manageSection.classList.contains('active')) {
-        loadSavedAirdrops();
+// Helper function to check if saved section is empty
+function checkEmptySavedSection() {
+    const savedCards = document.querySelectorAll('.saved-airdrop-card');
+    if (savedCards.length === 0) {
+        document.querySelector('.saved-airdrops').style.display = 'none';
+        document.querySelector('.no-saved-airdrops').style.display = 'flex';
     }
 }
 
-// Toast notification function
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
+// Add a helper function to update the saved count display
+function updateSavedCountDisplay() {
+    const savedAirdropIds = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
     
-    document.body.appendChild(toast);
+    // Update the count in the stats card
+    const savedCountElement = document.getElementById('savedCount');
+    if (savedCountElement) {
+        savedCountElement.textContent = savedAirdropIds.length;
+    }
     
-    setTimeout(() => {
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 300);
-        }, 2000);
-    }, 100);
+    // Update badge on manage tab
+    const manageBadge = document.querySelector('.nav-item[data-section="manage"] .saved-count');
+    if (manageBadge) {
+        manageBadge.textContent = savedAirdropIds.length;
+        manageBadge.style.display = savedAirdropIds.length > 0 ? 'flex' : 'none';
+    }
 }
 
-// Add this function to update all save buttons
-function updateSaveButtonStates() {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
+// Add this to your tab switching code
+function switchToAirdrops() {
+    document.querySelector('.nav-item[data-section="airdrops"]').click();
+}
 
-    const savedAirdrops = getSavedAirdrops(currentUser.id);
-    document.querySelectorAll('.save-btn').forEach(btn => {
-        const airdropId = parseInt(btn.dataset.id);
-        const isSaved = savedAirdrops.some(saved => saved.id === airdropId);
+// Replace the existing Telegram-specific code
+function initializeUser() {
+    let userId = localStorage.getItem('userId');
+    let platform = 'web';
+    
+    // Check if running in Telegram Web App
+    if (window.Telegram && window.Telegram.WebApp) {
+        const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
+        if (telegramUser) {
+            platform = 'telegram';
+            userId = telegramUser.id;
+        }
+    }
+    
+    // If user ID doesn't exist or this is Telegram, get user info from API
+    if (!userId || platform === 'telegram') {
+        fetch(`${API_BASE_URL}/api/user-info?platform=${platform}${userId ? '&telegramId=' + userId : ''}`)
+            .then(response => response.json())
+            .then(data => {
+                userId = data.userId;
+                localStorage.setItem('userId', userId);
+                updateSavedCount(data.savedCount);
+            })
+            .catch(error => {
+                console.error('Error initializing user:', error);
+            });
+    } else {
+        // Just get saved count for returning users
+        fetch(`${API_BASE_URL}/api/saved-airdrops?userId=${userId}`)
+            .then(response => response.json())
+            .then(savedAirdrops => {
+                updateSavedCount(savedAirdrops.length);
+            })
+            .catch(error => {
+                console.error('Error fetching saved count:', error);
+            });
+    }
+    
+    return userId;
+}
+
+// Update this function to work cross-platform
+async function handleSaveAirdrop(airdropId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    console.log('Save button clicked for airdrop:', airdropId);
+    
+    // Generate a user ID if not already exists
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('userId', userId);
+    }
+
+    const saveBtn = document.querySelector(`.airdrop-card[data-id="${airdropId}"] .save-btn`);
+    if (!saveBtn) {
+        console.error('Save button not found for airdrop:', airdropId);
+        return;
+    }
+    
+    // Get current saved airdrops
+    let savedAirdrops = JSON.parse(localStorage.getItem('savedAirdrops') || '[]');
+    
+    // Check if already saved
+    const isAlreadySaved = savedAirdrops.includes(airdropId);
+    
+    if (isAlreadySaved) {
+        // Show confirmation dialog for unsaving
+        const confirmModal = document.getElementById('confirmationModal');
+        const confirmMessage = document.getElementById('confirmationMessage');
+        const confirmButton = document.getElementById('confirmButton');
+        const cancelButton = document.getElementById('cancelButton');
         
-        btn.classList.toggle('saved', isSaved);
-        btn.querySelector('i').className = `fas ${isSaved ? 'fa-check' : 'fa-bookmark'}`;
-    });
-}
-
-// Update the filterSavedAirdrops function
-function filterSavedAirdrops(searchTerm) {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
-
-    const savedAirdrops = getSavedAirdrops(currentUser.id);
-    const filteredAirdrops = savedAirdrops.filter(airdrop => {
-        const title = airdrop.title.toLowerCase();
-        const brief = airdrop.brief.toLowerCase();
-        return title.includes(searchTerm) || brief.includes(searchTerm);
-    });
-    
-    const container = document.querySelector('.saved-airdrops-container');
-    container.innerHTML = filteredAirdrops
-        .map(airdrop => renderSavedCard(airdrop))
-        .join('');
-}
-
-// Update the showLoginPrompt function
-function showLoginPrompt() {
-    const container = document.querySelector('.saved-airdrops-container');
-    if (container) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fab fa-telegram"></i>
-                <h3>Connect with Telegram</h3>
-                <p>${isInTelegram() ? 
-                    'Click connect to manage your saved airdrops' : 
-                    'Please open this app in Telegram to manage your saved airdrops'}</p>
-                ${isInTelegram() ? `
-                    <button class="connect-btn" onclick="handleTelegramConnect()">
-                        <i class="fab fa-telegram"></i>
-                        Connect
-                    </button>
-                ` : `
-                    <button class="connect-btn" onclick="window.open('https://t.me/NexDrop_bot', '_blank')">
-                        <i class="fab fa-telegram"></i>
-                        Open in Telegram
-                    </button>
-                `}
-            </div>
-        `;
+        confirmMessage.textContent = 'Are you sure you want to unsave this airdrop?';
+        confirmModal.style.display = 'flex';
+        
+        // Handle confirmation
+        const handleConfirm = () => {
+            // UNSAVE - Remove from localStorage
+            savedAirdrops = savedAirdrops.filter(id => id !== airdropId);
+            localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
+            
+            // Update button appearance
+            saveBtn.classList.remove('saved');
+            saveBtn.querySelector('i').className = 'far fa-bookmark';
+            
+            // If we're on server, remove from server too
+            fetch(`${API_BASE_URL}/api/remove-airdrop`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    airdropId,
+                    userId
+                })
+            }).catch(error => {
+                console.error('Error removing from server:', error);
+            });
+            
+            // Update the manage section immediately
+            updateManageSectionWithLocalData();
+            
+            // Hide modal
+            confirmModal.style.display = 'none';
+            
+            // Remove event listeners
+            confirmButton.removeEventListener('click', handleConfirm);
+            cancelButton.removeEventListener('click', handleCancel);
+        };
+        
+        // Handle cancel
+        const handleCancel = () => {
+            confirmModal.style.display = 'none';
+            confirmButton.removeEventListener('click', handleConfirm);
+            cancelButton.removeEventListener('click', handleCancel);
+        };
+        
+        // Add event listeners
+        confirmButton.addEventListener('click', handleConfirm);
+        cancelButton.addEventListener('click', handleCancel);
+    } else {
+        // SAVE - Add to localStorage without confirmation
+        savedAirdrops.push(airdropId);
+        localStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
+        
+        // Update button appearance
+        saveBtn.classList.add('saved');
+        saveBtn.querySelector('i').className = 'fas fa-bookmark';
+        
+        // If we're on server, save to server too
+        fetch(`${API_BASE_URL}/api/save-airdrop`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                airdropId,
+                userId,
+                username: localStorage.getItem('username') || 'web_user'
+            })
+        }).catch(error => {
+            console.error('Error saving to server:', error);
+        });
+        
+        // Update the manage section immediately
+        updateManageSectionWithLocalData();
     }
+    
+    return false; // Prevent default action
 }
 
-// Add function to handle Telegram connection
-function handleTelegramConnect() {
-    if (!window.Telegram?.WebApp) {
-        // If not in Telegram WebApp, show a toast and redirect
-        showToast('Please open this app in Telegram');
-        setTimeout(() => {
-            window.open('https://t.me/NexDrop_bot', '_blank');
-        }, 1000);
+// Function to update saved count badge
+function updateSavedCount() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+    
+    fetch(`${API_BASE_URL}/api/saved-airdrops?userId=${userId}`)
+        .then(response => response.json())
+        .then(savedAirdrops => {
+            const savedCountBadge = document.querySelector('.nav-item[data-section="manage"] .saved-count');
+            if (savedCountBadge) {
+                savedCountBadge.textContent = savedAirdrops.length;
+                savedCountBadge.style.display = savedAirdrops.length > 0 ? 'flex' : 'none';
+            }
+        });
+}
+
+// Update the updateManageSectionWithLocalData function to correctly process saved airdrops
+function updateManageSectionWithLocalData() {
+    const savedAirdropsContainer = document.querySelector('.saved-airdrops');
+    const noSavedMessage = document.querySelector('.no-saved-airdrops');
+    const savedCountElement = document.getElementById('savedCount');
+    
+    if (!savedAirdropsContainer || !noSavedMessage || !savedCountElement) {
+        console.error('Required DOM elements not found for manage section');
         return;
     }
 
-    // If in Telegram WebApp
-    window.Telegram.WebApp.expand();
+    // Get locally saved airdrop IDs (convert to numbers since localStorage saves as strings)
+    const savedAirdropIds = JSON.parse(localStorage.getItem('savedAirdrops') || '[]')
+        .map(id => typeof id === 'string' ? parseInt(id) : id);
     
-    const userData = window.Telegram.WebApp.initDataUnsafe?.user;
-    if (userData) {
-        const user = {
-            id: userData.id.toString(),
-            username: userData.username,
-            firstName: userData.first_name,
-            lastName: userData.last_name
-        };
-        
-        localStorage.setItem('userData', JSON.stringify(user));
-        updateUIForLoggedInUser(user);
-        showToast('Successfully connected with Telegram');
+    // Find the matching airdrops from the data
+    const savedAirdrops = airdropsData.filter(airdrop => 
+        savedAirdropIds.includes(airdrop.id)
+    );
+    
+    // Update the counter
+    savedCountElement.textContent = savedAirdrops.length;
+    
+    // Update display
+    if (savedAirdrops.length === 0) {
+        savedAirdropsContainer.style.display = 'none';
+        noSavedMessage.style.display = 'flex';
     } else {
-        showToast('Please open this app in Telegram');
+        savedAirdropsContainer.style.display = 'flex';
+        noSavedMessage.style.display = 'none';
+        savedAirdropsContainer.innerHTML = savedAirdrops
+            .map(airdrop => renderSavedAirdropCard(airdrop))
+            .join('');
     }
+    
+    // Update badge on manage tab
+    updateSavedCountDisplay();
+    
+    // Initialize search
+    initializeSavedAirdropsSearch();
 }
 
-// Add this function to check if we're in Telegram
-function isInTelegram() {
-    return !!window.Telegram?.WebApp;
+// Add this function to initialize search functionality for manage section
+function initializeSavedAirdropsSearch() {
+    const searchInput = document.getElementById('savedSearchInput');
+    const clearButton = document.querySelector('#manage-section .clear-search');
+    
+    if (!searchInput || !clearButton) return;
+    
+    // Search input handler
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        clearButton.style.display = searchTerm ? 'flex' : 'none';
+        
+        // Get the saved airdrops
+        const savedAirdropIds = JSON.parse(localStorage.getItem('savedAirdrops') || '[]')
+            .map(id => typeof id === 'string' ? parseInt(id) : id);
+        const savedAirdrops = airdropsData.filter(airdrop => 
+            savedAirdropIds.includes(airdrop.id)
+        );
+        
+        // Filter by search term
+        const filteredAirdrops = savedAirdrops.filter(airdrop => 
+            airdrop.title.toLowerCase().includes(searchTerm) || 
+            airdrop.brief.toLowerCase().includes(searchTerm)
+        );
+        
+        // Update the display
+        const savedAirdropsContainer = document.querySelector('.saved-airdrops');
+        const noSavedMessage = document.querySelector('.no-saved-airdrops');
+        
+        if (filteredAirdrops.length === 0) {
+            savedAirdropsContainer.style.display = 'none';
+            noSavedMessage.style.display = 'flex';
+            noSavedMessage.querySelector('p').textContent = searchTerm ? 
+                'No saved airdrops match your search' : 'No saved airdrops';
+        } else {
+            savedAirdropsContainer.style.display = 'flex';
+            noSavedMessage.style.display = 'none';
+            savedAirdropsContainer.innerHTML = filteredAirdrops
+                .map(airdrop => renderSavedAirdropCard(airdrop))
+                .join('');
+        }
+    });
+    
+    // Clear search button
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        clearButton.style.display = 'none';
+        updateManageSectionWithLocalData();
+        searchInput.focus();
+    });
+}
+
+// Add this function to your script.js
+function trackUserVisit() {
+    let userId = localStorage.getItem('userId');
+    const platform = window.Telegram && window.Telegram.WebApp ? 'telegram' : 'web';
+    let username = localStorage.getItem('username');
+    
+    // Generate new ID if not exists
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('userId', userId);
+    }
+    
+    // If in Telegram, get username
+    if (platform === 'telegram' && window.Telegram.WebApp.initDataUnsafe.user) {
+        username = window.Telegram.WebApp.initDataUnsafe.user.username || 
+                  `telegram_user_${window.Telegram.WebApp.initDataUnsafe.user.id}`;
+        localStorage.setItem('username', username);
+    }
+    
+    // Track visit via API
+    fetch(`${API_BASE_URL}/api/user-visit`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId,
+            platform,
+            username
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('User visit tracked:', data);
+    })
+    .catch(error => {
+        console.error('Error tracking user visit:', error);
+    });
+    
+    return userId;
 } 
