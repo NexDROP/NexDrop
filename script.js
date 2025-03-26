@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://your-backend-url.com'; // You'll replace this with your actual backend URL
+const API_BASE_URL = 'https://nexdrop.pythonanywhere.com'; // You'll replace this with your actual backend URL
 
 const airdropsData = [
     {
