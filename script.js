@@ -579,6 +579,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Track user visit immediately when page loads
     trackUserVisit();
+
+    // Initialize the user first
+    initializeTelegramUser();
+    
+    // Then initialize saved buttons
+    initializeSavedButtons();
 });
 
 // Update the updateNewTags function to use actual current time
@@ -860,32 +866,44 @@ function showConfirmationModal(message, onConfirm) {
     modal.style.display = 'flex';
 }
 
-// Update all localStorage operations to use user-specific keys
-function getUserSpecificKey(baseKey) {
+// Add this helper function for user-specific localStorage
+function getUserStorage() {
     const userId = localStorage.getItem('userId') || 'anonymous';
-    return `${userId}_${baseKey}`;
+    
+    // Create a user-specific storage wrapper
+    return {
+        getItem: function(key) {
+            return localStorage.getItem(`${userId}_${key}`);
+        },
+        setItem: function(key, value) {
+            return localStorage.setItem(`${userId}_${key}`, value);
+        },
+        removeItem: function(key) {
+            return localStorage.removeItem(`${userId}_${key}`);
+        },
+        // Get a raw key for direct operations
+        getKey: function(key) {
+            return `${userId}_${key}`;
+        }
+    };
 }
 
-// When saving airdrops
+// Now replace all localStorage operations with userStorage
+// For example:
+
 function handleSaveAirdrop(airdropId, event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
     }
     
-    // Convert airdropId to number if it's a string (for comparison)
-    airdropId = typeof airdropId === 'string' ? parseInt(airdropId) : airdropId;
+    // Get user-specific storage
+    const userStorage = getUserStorage();
     
-    console.log('Save button clicked for airdrop:', airdropId);
-    
-    // Use user-specific key for saved airdrops
-    const savedAirdropsKey = getUserSpecificKey('savedAirdrops');
-    let savedAirdrops = JSON.parse(localStorage.getItem(savedAirdropsKey) || '[]');
-    
-    // Check if already saved
+    // Get current saved airdrops
+    let savedAirdrops = JSON.parse(userStorage.getItem('savedAirdrops') || '[]');
     const isAlreadySaved = savedAirdrops.includes(airdropId);
     
-    // Find the save button
     const saveBtn = document.querySelector(`.airdrop-card[data-id="${airdropId}"] .save-btn`);
     
     if (isAlreadySaved) {
@@ -893,11 +911,11 @@ function handleSaveAirdrop(airdropId, event) {
         showConfirmationModal(
             'Are you sure you want to unsave this airdrop?', 
             function() {
-                // Remove from saved list
+                // Remove from saved
                 savedAirdrops = savedAirdrops.filter(id => id !== airdropId);
-                localStorage.setItem(savedAirdropsKey, JSON.stringify(savedAirdrops));
+                userStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
                 
-                // Update button appearance
+                // Update button
                 if (saveBtn) {
                     saveBtn.classList.remove('saved');
                     saveBtn.querySelector('i').className = 'far fa-bookmark';
@@ -905,15 +923,14 @@ function handleSaveAirdrop(airdropId, event) {
                 
                 // Update manage section
                 updateManageSectionWithLocalData();
-                updateSavedCountDisplay();
             }
         );
     } else {
-        // Just save without confirmation
+        // Add to saved
         savedAirdrops.push(airdropId);
-        localStorage.setItem(savedAirdropsKey, JSON.stringify(savedAirdrops));
+        userStorage.setItem('savedAirdrops', JSON.stringify(savedAirdrops));
         
-        // Update button appearance
+        // Update button
         if (saveBtn) {
             saveBtn.classList.add('saved');
             saveBtn.querySelector('i').className = 'fas fa-bookmark';
@@ -921,7 +938,6 @@ function handleSaveAirdrop(airdropId, event) {
         
         // Update manage section
         updateManageSectionWithLocalData();
-        updateSavedCountDisplay();
     }
 }
 
@@ -942,11 +958,11 @@ function handleRemoveAirdrop(airdropId, event) {
         'Are you sure you want to remove this saved airdrop?',
         function() {
             // Remove from localStorage
-            let savedAirdrops = JSON.parse(localStorage.getItem(getUserSpecificKey('savedAirdrops')) || '[]')
+            let savedAirdrops = JSON.parse(localStorage.getItem(getUserStorage().getKey('savedAirdrops')) || '[]')
                 .map(id => typeof id === 'string' ? parseInt(id) : id);
                 
             savedAirdrops = savedAirdrops.filter(id => id !== airdropId);
-            localStorage.setItem(getUserSpecificKey('savedAirdrops'), JSON.stringify(savedAirdrops));
+            localStorage.setItem(getUserStorage().getKey('savedAirdrops'), JSON.stringify(savedAirdrops));
             
             // Update any visible save buttons
             const saveBtn = document.querySelector(`.airdrop-card[data-id="${airdropId}"] .save-btn`);
@@ -982,7 +998,7 @@ function checkEmptySavedSection() {
 
 // Add a helper function to update the saved count display
 function updateSavedCountDisplay() {
-    const savedAirdropIds = JSON.parse(localStorage.getItem(getUserSpecificKey('savedAirdrops')) || '[]');
+    const savedAirdropIds = JSON.parse(localStorage.getItem(getUserStorage().getKey('savedAirdrops')) || '[]');
     
     // Update the count in the stats card
     const savedCountElement = document.getElementById('savedCount');
@@ -1004,23 +1020,28 @@ function switchToAirdrops() {
 }
 
 // Replace the existing Telegram-specific code
-function initializeUser() {
-    let userId;
-    
+function initializeTelegramUser() {
     // Check if running in Telegram Web App
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe.user) {
-        // Use telegram ID for telegram users
-        userId = `telegram_${window.Telegram.WebApp.initDataUnsafe.user.id}`;
-    } else {
-        // Use stored ID or generate new one for web users
-        userId = localStorage.getItem('userId');
-        if (!userId) {
-            userId = `web_${Math.random().toString(36).substring(2, 15)}`;
-            localStorage.setItem('userId', userId);
-        }
+        // Get Telegram user ID
+        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        const telegramUsername = window.Telegram.WebApp.initDataUnsafe.user.username;
+        
+        // Set as userId
+        localStorage.setItem('userId', 'telegram_' + telegramId);
+        localStorage.setItem('username', telegramUsername || 'telegram_user');
+        
+        console.log('Telegram user initialized:', telegramId);
+        return 'telegram_' + telegramId;
     }
     
-    console.log('User initialized with ID:', userId);
+    // Return existing or new ID for non-Telegram users
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+        userId = 'web_' + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('userId', userId);
+    }
+    
     return userId;
 }
 
@@ -1047,7 +1068,7 @@ async function handleSaveAirdrop(airdropId, event) {
     }
     
     // Get current saved airdrops
-    let savedAirdrops = JSON.parse(localStorage.getItem(getUserSpecificKey('savedAirdrops')) || '[]');
+    let savedAirdrops = JSON.parse(localStorage.getItem(getUserStorage().getKey('savedAirdrops')) || '[]');
     
     // Check if already saved
     const isAlreadySaved = savedAirdrops.includes(airdropId);
@@ -1066,7 +1087,7 @@ async function handleSaveAirdrop(airdropId, event) {
         const handleConfirm = () => {
             // UNSAVE - Remove from localStorage
             savedAirdrops = savedAirdrops.filter(id => id !== airdropId);
-            localStorage.setItem(getUserSpecificKey('savedAirdrops'), JSON.stringify(savedAirdrops));
+            localStorage.setItem(getUserStorage().getKey('savedAirdrops'), JSON.stringify(savedAirdrops));
             
             // Update button appearance
             saveBtn.classList.remove('saved');
@@ -1110,7 +1131,7 @@ async function handleSaveAirdrop(airdropId, event) {
     } else {
         // SAVE - Add to localStorage without confirmation
         savedAirdrops.push(airdropId);
-        localStorage.setItem(getUserSpecificKey('savedAirdrops'), JSON.stringify(savedAirdrops));
+        localStorage.setItem(getUserStorage().getKey('savedAirdrops'), JSON.stringify(savedAirdrops));
         
         // Update button appearance
         saveBtn.classList.add('saved');
@@ -1156,6 +1177,8 @@ function updateSavedCount() {
 
 // Update the updateManageSectionWithLocalData function to correctly process saved airdrops
 function updateManageSectionWithLocalData() {
+    const userStorage = getUserStorage();
+    
     const savedAirdropsContainer = document.querySelector('.saved-airdrops');
     const noSavedMessage = document.querySelector('.no-saved-airdrops');
     const savedCountElement = document.getElementById('savedCount');
@@ -1165,9 +1188,8 @@ function updateManageSectionWithLocalData() {
         return;
     }
 
-    // Use user-specific key
-    const savedAirdropsKey = getUserSpecificKey('savedAirdrops');
-    const savedAirdropIds = JSON.parse(localStorage.getItem(savedAirdropsKey) || '[]')
+    // Use user-specific storage
+    const savedAirdropIds = JSON.parse(userStorage.getItem('savedAirdrops') || '[]')
         .map(id => typeof id === 'string' ? parseInt(id) : id);
     
     // Find the matching airdrops from the data
@@ -1210,7 +1232,7 @@ function initializeSavedAirdropsSearch() {
         clearButton.style.display = searchTerm ? 'flex' : 'none';
         
         // Get the saved airdrops
-        const savedAirdropIds = JSON.parse(localStorage.getItem(getUserSpecificKey('savedAirdrops')) || '[]')
+        const savedAirdropIds = JSON.parse(localStorage.getItem(getUserStorage().getKey('savedAirdrops')) || '[]')
             .map(id => typeof id === 'string' ? parseInt(id) : id);
         const savedAirdrops = airdropsData.filter(airdrop => 
             savedAirdropIds.includes(airdrop.id)
@@ -1289,4 +1311,18 @@ function trackUserVisit() {
     });
     
     return userId;
+}
+
+// Initialize saved buttons state
+function initializeSavedButtons() {
+    const userStorage = getUserStorage();
+    const savedAirdropIds = JSON.parse(userStorage.getItem('savedAirdrops') || '[]');
+    
+    savedAirdropIds.forEach(id => {
+        const saveBtn = document.querySelector(`.airdrop-card[data-id="${id}"] .save-btn`);
+        if (saveBtn) {
+            saveBtn.classList.add('saved');
+            saveBtn.querySelector('i').className = 'fas fa-bookmark';
+        }
+    });
 } 
