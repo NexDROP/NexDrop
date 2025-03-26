@@ -91,4 +91,32 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Add these styles to completely prevent the lock icon */
+.nav-item[data-section="manage"] {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.nav-item[data-section="manage"]::after,
+.nav-item[data-section="manage"]::before,
+.nav-item[data-section="manage"] *::after,
+.nav-item[data-section="manage"] *::before {
+    display: none !important;
+    content: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.nav-item[data-section="manage"] i {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+}
+
+.nav-item[data-section="manage"] span {
+    font-size: 12px !important;
 } 
