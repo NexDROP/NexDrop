@@ -1,0 +1,94 @@
+/* Save count badge styles */
+.nav-item .saved-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #7CFF4D;
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 600;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Save button styles */
+.save-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.save-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.save-btn.saved {
+    background: rgba(124, 255, 77, 0.1);
+    border-color: rgba(124, 255, 77, 0.2);
+    color: #7CFF4D;
+}
+
+.save-btn.saved i {
+    font-weight: 900;
+}
+
+/* Saved airdrops section styles */
+.saved-airdrops {
+    display: grid;
+    gap: 12px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@media (min-width: 768px) {
+    .saved-airdrops {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+/* Saved airdrop cards - compact style */
+.saved-airdrop-card {
+    background: linear-gradient(165deg, rgba(36, 36, 36, 0.95), rgba(28, 28, 28, 0.95));
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.saved-airdrop-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 255, 77, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.saved-airdrop-card.removing {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* Add this keyframe animation if it doesn't exist */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+} 
