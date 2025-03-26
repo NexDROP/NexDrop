@@ -1023,9 +1023,6 @@ function switchToAirdrops() {
 
 // Replace the existing Telegram-specific code
 function initializeTelegramUser() {
-    const platform = getPlatform();
-    localStorage.setItem('platform', platform);
-    
     // Check if running in Telegram Web App
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe.user) {
         // Get Telegram user ID
@@ -1099,7 +1096,6 @@ async function handleSaveAirdrop(airdropId, event) {
             saveBtn.querySelector('i').className = 'far fa-bookmark';
             
             // If we're on server, remove from server too
-            const platform = localStorage.getItem('platform') || getPlatform();
             fetch(`${API_BASE_URL}/api/remove-airdrop`, {
                 method: 'POST',
                 headers: {
@@ -1107,8 +1103,7 @@ async function handleSaveAirdrop(airdropId, event) {
                 },
                 body: JSON.stringify({
                     airdropId,
-                    userId,
-                    platform: platform
+                    userId
                 })
             }).catch(error => {
                 console.error('Error removing from server:', error);
@@ -1145,7 +1140,6 @@ async function handleSaveAirdrop(airdropId, event) {
         saveBtn.querySelector('i').className = 'fas fa-bookmark';
         
         // If we're on server, save to server too
-        const platform = localStorage.getItem('platform') || getPlatform();
         fetch(`${API_BASE_URL}/api/save-airdrop`, {
             method: 'POST',
             headers: {
@@ -1154,8 +1148,7 @@ async function handleSaveAirdrop(airdropId, event) {
             body: JSON.stringify({
                 airdropId,
                 userId,
-                username: localStorage.getItem('username') || 'web_user',
-                platform: platform
+                username: localStorage.getItem('username') || 'web_user'
             })
         }).catch(error => {
             console.error('Error saving to server:', error);
@@ -1294,7 +1287,7 @@ function initializeSavedAirdropsSearch() {
 // Add this function to your script.js
 function trackUserVisit() {
     let userId = localStorage.getItem('userId');
-    const platform = getPlatform();
+    const platform = window.Telegram && window.Telegram.WebApp ? 'telegram' : 'web';
     let username = localStorage.getItem('username');
     
     // Generate new ID if not exists
@@ -1309,9 +1302,6 @@ function trackUserVisit() {
                   `telegram_user_${window.Telegram.WebApp.initDataUnsafe.user.id}`;
         localStorage.setItem('username', username);
     }
-    
-    // Store platform in localStorage for consistency
-    localStorage.setItem('platform', platform);
     
     // Track visit via API
     fetch(`${API_BASE_URL}/api/user-visit`, {
@@ -1395,16 +1385,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
     });
-});
-
-// 1. Add this function to centralize platform detection
-function getPlatform() {
-    // Check if Telegram WebApp is available and initialized
-    if (window.Telegram && 
-        window.Telegram.WebApp && 
-        window.Telegram.WebApp.initDataUnsafe &&
-        window.Telegram.WebApp.initDataUnsafe.user) {
-        return 'telegram';
-    }
-    return 'web';
-} 
+}); 
