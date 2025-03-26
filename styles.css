@@ -732,14 +732,6 @@ body {
     position: relative;
 }
 
-.nav-item[data-section="manage"]::after {
-    content: '🔒';
-    font-size: 10px;
-    position: absolute;
-    top: 8px;
-    right: 8px;
-}
-
 /* Add these styles for the Updates section */
 .updates-filter {
     margin-top: 12px;
